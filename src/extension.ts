@@ -218,7 +218,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let disposable = vscode.commands.registerCommand('extension.showPackagesPanel', () => {
 		const panel = vscode.window.createWebviewPanel('packageListPanel', 'Package List', vscode.ViewColumn.Two);
-		panel.iconPath = vscode.Uri.file(context.asAbsolutePath('/assets/icons//list-dark.svg'));
+		panel.iconPath = vscode.Uri.file(context.asAbsolutePath('/assets/icons//list-dark.png'));
 		reloadPanelContent(panel);
 
 		panel.webview.options = {

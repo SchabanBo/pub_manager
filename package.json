@@ -5,6 +5,8 @@
   "author": {
     "name": "Schaban Bochi"
   },
+  "publisher": "qlevar",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/SchabanBo/pub_manager"
@@ -12,7 +14,6 @@
   "bugs": {
     "url": "https://github.com/SchabanBo/pub_manager/issues"
   },
-  "version": "0.0.1",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -38,8 +39,8 @@
         "command": "extension.showPackagesPanel",
         "title": "Pub Manager: Show Package List",
         "icon": {
-          "light": "assets/icons/list-light.svg",
-          "dark": "assets/icons/list-dark.svg"
+          "light": "assets/icons/list-light.png",
+          "dark": "assets/icons/list-dark.png"
         }
       }
     ],
