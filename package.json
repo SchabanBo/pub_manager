@@ -1,0 +1,91 @@
+{
+  "name": "pub-manager",
+  "displayName": "Pub Manager",
+  "description": " Manage packages in your Dart and Flutter projects. View package information, check for updates, and easily update your ",
+  "author": {
+    "name": "Schaban Bochi"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SchabanBo/pub_manager"
+  },
+  "bugs": {
+    "url": "https://github.com/SchabanBo/pub_manager/issues"
+  },
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.78.0"
+  },
+  "keywords": [
+    "dart",
+    "flutter",
+    "pubspec",
+    "manager"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "icon": "assets/icons/icon.jpg",
+  "license": "SEE LICENSE IN LICENSE",
+  "activationEvents": [
+    "onLanguage:yaml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.showPackagesPanel",
+        "title": "Pub Manager: Show Package List",
+        "icon": {
+          "light": "assets/icons/list-light.svg",
+          "dark": "assets/icons/list-dark.svg"
+        }
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "extension.showPackagesPanel",
+          "group": "navigation",
+          "when": "isPubspecFile == true"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "packageListPanel",
+          "name": "Package List"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.78.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.1",
+    "@typescript-eslint/parser": "^5.59.1",
+    "@vscode/test-electron": "^2.3.0",
+    "eslint": "^8.39.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "request-promise-native": "^1.0.9",
+    "semver": "^7.5.0",
+    "yaml": "^2.2.2"
+  }
+}
