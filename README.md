@@ -2,8 +2,8 @@
 
 Pub Manager is a Visual Studio Code extension that helps you manage packages in your Dart and Flutter projects. With this extension, you can view package information, check for updates, and easily update your `pubspec.yaml` file.
 
-![Pub Manager]([https://](https://github.com/SchabanBo/pub_manager/blob/main/media/pub-manager.png?raw=true))
-![Pub Manager]([/media/pub-manager.gif](https://github.com/SchabanBo/pub_manager/blob/main/media/pub-manager.gif?raw=true))
+![Pub Manager](https://github.com/SchabanBo/pub_manager/blob/main/media/pub-manager.png?raw=true)
+![Pub Manager](https://github.com/SchabanBo/pub_manager/blob/main/media/pub-manager.gif?raw=true)
 
 ## Features
 
