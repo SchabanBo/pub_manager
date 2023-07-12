@@ -9,5 +9,4 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 media/**
-node_modules/**
 out/test/**

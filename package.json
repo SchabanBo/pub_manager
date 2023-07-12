@@ -6,7 +6,7 @@
     "name": "Schaban Bochi"
   },
   "publisher": "qlevar",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "repository": {
     "type": "git",
     "url": "https://github.com/SchabanBo/pub_manager"
@@ -87,6 +87,6 @@
     "axios": "^1.4.0",
     "request-promise-native": "^1.0.9",
     "semver": "^7.5.0",
-    "yaml": "^2.2.2"
+    "yaml": "^2.2.0"
   }
 }
