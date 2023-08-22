@@ -30,7 +30,7 @@
   "icon": "assets/icons/icon.jpg",
   "license": "SEE LICENSE IN LICENSE",
   "activationEvents": [
-    "onLanguage:yaml"
+    "workspaceContains:pubspec.yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -43,24 +43,7 @@
           "dark": "assets/icons/list-dark.png"
         }
       }
-    ],
-    "menus": {
-      "editor/title": [
-        {
-          "command": "extension.showPackagesPanel",
-          "group": "navigation",
-          "when": "isPubspecFile == true"
-        }
-      ]
-    },
-    "views": {
-      "explorer": [
-        {
-          "id": "packageListPanel",
-          "name": "Package List"
-        }
-      ]
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

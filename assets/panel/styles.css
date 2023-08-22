@@ -1,0 +1,88 @@
+body {
+    font-size: 18px;
+}
+
+a {
+    text-decoration: none;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.package-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.package-table th,
+.package-table td {
+    padding: 8px;
+    border-bottom: 1px solid var(--vscode-settings-textInputForeground);
+}
+
+.package-table th {
+    text-align: left;
+}
+
+.refresh-container {
+    margin-bottom: 12px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: flex-end;
+}
+
+
+.spacer {
+    flex-grow: 1;
+}
+
+
+.toolbar-button {
+    background: none;
+    padding: 8px;
+    border: 1px solid var(--vscode-settings-textInputForeground);
+    border-radius: 4px;
+    color: var(--vscode-settings-textInputForeground);
+    cursor: pointer;
+    font-size: inherit;
+    align-items: center;
+}
+
+.analytics-container {
+    margin-bottom: 12px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.hidden {
+    display: none;
+}
+
+.results-columns {
+    display: flex;
+    gap: 20px;
+}
+
+.results-column {
+    flex: 1;
+}
+
+.results-column h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.results-column ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.results-column li {
+    margin-bottom: 6px;
+}
