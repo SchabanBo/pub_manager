@@ -39,3 +39,12 @@ export function modifyPubspecContent(pubspecContent: string, packageName: string
     });
     return updatedLines.join('\n');
 }
+
+export function removeDependency(pubspecContent: string, packageName: string): string {
+    const lines = pubspecContent.split('\n');
+    const updatedLines = lines.filter((line) => {
+        const trimmedLine = line.trim();
+        return !trimmedLine.startsWith(packageName + ':');
+    });
+    return updatedLines.join('\n');
+}

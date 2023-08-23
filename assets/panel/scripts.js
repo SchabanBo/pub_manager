@@ -7,6 +7,18 @@ function handleUpdateClick(package, version) {
     vscode.postMessage({ command: 'updatePackage', package, version });
 }
 
+function handleAddPackageClick() {
+    vscode.postMessage({ command: 'addPackage' });
+}
+
+function handleRemoveClick(packageName) {
+    const message = {
+        command: 'removePackage',
+        package: packageName,
+    };
+    vscode.postMessage(message);
+}
+
 /// <summary>
 /// Reloads the panel content
 /// </summary>

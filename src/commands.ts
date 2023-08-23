@@ -5,9 +5,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
 import { fetchPackageData } from './packageData';
-import { getPubspecContent, handleUpdateClick, getTheProjectName } from './utils';
+import { getPubspecContent, handleUpdateClick, getTheProjectName, handleRemoveClick } from './utils';
 import { formatAnalyzerResults, runAnalyzer } from './tools/analyzeProject';
-import { filesCount } from './tools/filesCount';
 
 export function registerCommands(context: vscode.ExtensionContext) {
   async function reloadPanelContent(panel: vscode.WebviewPanel) {
@@ -36,6 +35,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
           const canBeUpdated = semver.gt(packageData.latestVersion, currentVersion);
           const dependencyName = `<a href="https://pub.dev/packages/${dependency}" target="_blank">${dependency}</a>`;
           const latestVersion = `<a href="https://pub.dev/packages/${dependency}/changelog" target="_blank">${packageData.latestVersion}</a>`;
+          const removeButton = `<button class="remove-button" onclick="handleRemoveClick('${dependency}')">X</button>`;
           const updateButton = canBeUpdated
             ? `<a><img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/upgrade.svg')))}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${dependency}', '${packageData.latestVersion}')"></a>`
             : `<img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/check.svg')))}" alt="latest version" class="icon">`;
@@ -45,6 +45,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
             latestVersion,
             publishedDate,
             updateButton,
+            removeButton,
           };
         }));
         const cssContent = fs.readFileSync(path.join(context.extensionPath, 'assets/panel', 'styles.css'), 'utf-8');
@@ -52,9 +53,10 @@ export function registerCommands(context: vscode.ExtensionContext) {
         const actionsHTML = `<div class="refresh-container">
             <h2>${getTheProjectName()?.toUpperCase()}</h2>
             <div class="spacer"></div>
-        
+            <button id="addPackage" class="toolbar-button" onclick="handleAddPackageClick()">Add package</button>
             <button id="refreshButton" class="toolbar-button" style="margin-left: 16px;">Refresh</button>
           </div>
+          <hr/>
           `;
 
         const tableHtml = `<table class="package-table">
@@ -64,6 +66,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
             <th>Version</th>
             <th>Latest Version</th>
             <th>Published Date</th>
+            <th></th>
           </tr>
           ${packageDataList
             .map(
@@ -73,6 +76,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
               <td>${packageData.currentVersion}</td>
               <td>${packageData.latestVersion}</td>
               <td>${packageData.publishedDate}</td>
+              <td>${packageData.removeButton}</td>
               </tr>`
             )
             .join('')}
@@ -83,6 +87,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
               <div class="spacer"></div>
               <button id="analyzeButton" class="toolbar-button">Analyze Project</button>
             </div>
+            <hr/>
             <div id="resultsContainer" class="results-container">
               <p id="loadingMessage" class="hidden">Running analyzer...</p>
               <ul id="unusedFilesList" class="hidden"></ul>
@@ -118,8 +123,17 @@ export function registerCommands(context: vscode.ExtensionContext) {
         handleUpdateClick(packageName, version).then(() => {
           reloadPanelContent(panel);
         });
+      } else if (message.command === 'addPackage') {
+        vscode.commands.executeCommand('dart.addDependency').then(() => {
+          reloadPanelContent(panel);
+        });
       } else if (message.command === 'refreshPanel') {
         reloadPanelContent(panel);
+      } else if (message.command === 'removePackage') {
+        const packageNameToRemove = message.package;
+        handleRemoveClick(packageNameToRemove).then(() => {
+          reloadPanelContent(panel);
+        });
       } else if (message.command === 'analyzeProject') {
         vscode.window.withProgress({
           location: vscode.ProgressLocation.Notification,

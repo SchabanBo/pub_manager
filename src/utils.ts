@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
-import { modifyPubspecContent } from './packageData';
+import { modifyPubspecContent, removeDependency } from './packageData';
 import path = require('path');
 
 export async function handleUpdateClick(packageName: string, newVersion: string) {
@@ -9,7 +9,7 @@ export async function handleUpdateClick(packageName: string, newVersion: string)
 
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
-        vscode.window.showErrorMessage('Please open a pubspec.yaml file in a workspace before performing the update.');
+        vscode.window.showErrorMessage('No pubspec.yaml file found in the workspace.');
         return;
     }
 
@@ -20,6 +20,26 @@ export async function handleUpdateClick(packageName: string, newVersion: string)
         fs.writeFileSync(pubspecPath.fsPath, updatedContent, 'utf8');
         await runPubGetCommand(workspaceFolder.uri.fsPath);
         vscode.window.showInformationMessage(`Updated package: ${packageName} to version ${newVersion}`);
+    } catch (error) {
+        console.error(`Error updating package: ${packageName}`, error);
+    }
+}
+
+export async function handleRemoveClick(packageName: string) {
+    console.log('Remove clicked for package:', packageName);
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage('No pubspec.yaml file found in the workspace.');
+        return;
+    }
+
+    const pubspecPath = vscode.Uri.joinPath(workspaceFolder.uri, 'pubspec.yaml');
+    try {
+        const fileContent = fs.readFileSync(pubspecPath.fsPath, 'utf8');
+        const updatedContent = removeDependency(fileContent, packageName);
+        fs.writeFileSync(pubspecPath.fsPath, updatedContent, 'utf8');
+        await runPubGetCommand(workspaceFolder.uri.fsPath);
+        vscode.window.showInformationMessage(`Removed package: ${packageName}`);
     } catch (error) {
         console.error(`Error updating package: ${packageName}`, error);
     }

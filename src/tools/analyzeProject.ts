@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
 import { getPubspecContent, getTheProjectName, walkDirectory } from '../utils';
-import { filesCount } from './filesCount';
 
 const PROJECT_NAME = getTheProjectName();
 
@@ -12,6 +11,8 @@ export function runAnalyzer(basePath: string): AnalyzerResult {
     const unusedFiles = new Set<string>();
     const usedPackages = new Set<string>();
     const unusedPackages = new Set<string>();
+    let filesCount = 0;
+    let totalLinesCount = 0;
 
     /// this function will convert the import path to the correct one
     /// there are three cases:
@@ -42,10 +43,12 @@ export function runAnalyzer(basePath: string): AnalyzerResult {
 
     for (const file of files) {
         if (!file.endsWith('.dart')) continue;
+        filesCount++;
         const content = fs.readFileSync(file, 'utf8');
         const lines = content.split('\n');
+        totalLinesCount += lines.length;
         for (const line of lines) {
-            if (line.startsWith('import')) {
+            if (line.startsWith('import') || line.startsWith('part')) {
                 const importedFilePath = fixImportPath(path.dirname(file), line);
                 if (importedFilePath) {
                     usedFiles.add(importedFilePath);
@@ -78,16 +81,19 @@ export function runAnalyzer(basePath: string): AnalyzerResult {
             }
         }
     }
-    const projectFilesCount = filesCount(basePath);
     return {
         unusedFiles: unusedFiles,
         unusedPackages: unusedPackages,
-        filesCount: projectFilesCount
+        filesCount: filesCount,
+        totalLinesCount: totalLinesCount
     };
 }
 
 export function formatAnalyzerResults(result: AnalyzerResult): string {
-    let resultsHtml = `<h4>Files count: ${result.filesCount}</h4>`;
+    let resultsHtml = `<div class="results-columns">`;
+    resultsHtml += `<h4>Files count: ${result.filesCount}</h4>`;
+    resultsHtml += `<h4>Lines count: ${result.totalLinesCount}</h4>`;
+    resultsHtml += `</div>`;
     resultsHtml += '<div class="results-columns">';
 
     // Display used packages
@@ -128,8 +134,10 @@ export function formatAnalyzerResults(result: AnalyzerResult): string {
     return resultsHtml;
 }
 
+
 export interface AnalyzerResult {
     unusedFiles: Set<string>;
     unusedPackages: Set<string>;
     filesCount: number;
+    totalLinesCount: number;
 }

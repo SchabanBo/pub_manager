@@ -27,6 +27,20 @@ a {
     text-align: left;
 }
 
+.remove-button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 0;
+}
+
+.remove-button:hover {
+    text-decoration: underline;
+}
+
 .refresh-container {
     margin-bottom: 12px;
     padding-top: 8px;
@@ -67,6 +81,10 @@ a {
 .results-columns {
     display: flex;
     gap: 20px;
+}
+
+.results-columns h4 {
+    margin-bottom: 8px;
 }
 
 .results-column {
