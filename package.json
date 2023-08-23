@@ -6,7 +6,7 @@
     "name": "Schaban Bochi"
   },
   "publisher": "qlevar",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/SchabanBo/pub_manager"
@@ -30,7 +30,7 @@
   "icon": "assets/icons/icon.jpg",
   "license": "SEE LICENSE IN LICENSE",
   "activationEvents": [
-    "onLanguage:yaml"
+    "workspaceContains:pubspec.yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -43,24 +43,7 @@
           "dark": "assets/icons/list-dark.png"
         }
       }
-    ],
-    "menus": {
-      "editor/title": [
-        {
-          "command": "extension.showPackagesPanel",
-          "group": "navigation",
-          "when": "isPubspecFile == true"
-        }
-      ]
-    },
-    "views": {
-      "explorer": [
-        {
-          "id": "packageListPanel",
-          "name": "Package List"
-        }
-      ]
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -87,6 +70,6 @@
     "axios": "^1.4.0",
     "request-promise-native": "^1.0.9",
     "semver": "^7.5.0",
-    "yaml": "^2.2.2"
+    "yaml": "^2.2.0"
   }
 }

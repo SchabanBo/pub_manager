@@ -11,6 +11,8 @@ Pub Manager is a Visual Studio Code extension that helps you manage packages in 
 - View package details such as the current version, latest version, and published date.
 - Check for available updates for each package and perform updates.
 - Automatically update the `pubspec.yaml` file and run `flutter pub get` to apply package updates.
+- Add or remove a package directly from the panel.
+- Run static analysis on the project to find unused packages and files and get the files count and lines of code count.
 
 ## Installation
 
@@ -21,8 +23,8 @@ Pub Manager is a Visual Studio Code extension that helps you manage packages in 
 
 ## Usage
 
-1. Open a Dart or Flutter project that contains a `pubspec.yaml` file and open it in editor.
-2. In the VS Code activity bar, click on the Pub Manager icon to open the package list.
+1. Open a Dart or Flutter project that contains a `pubspec.yaml` file.
+2. In the VS Code toolbar, click on the Pub Manager icon to open the panel. or run the "Pub Manager: Show package list" command from the command palette.
 3. The package list will be displayed in a webview panel, showing the package name, current version, latest version, published date, and an update button.
 4. Click on the update button for a package to update its version in the `pubspec.yaml` file.
 5. After the update, the `pubspec.yaml` file will be saved, and `flutter pub get` will be automatically run to apply the changes.
