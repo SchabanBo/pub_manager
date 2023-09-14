@@ -29,7 +29,8 @@ export function modifyPubspecContent(pubspecContent: string, packageName: string
     const updatedLines = lines.map((line) => {
         const trimmedLine = line.trim();
         if (trimmedLine.startsWith(packageName + ':')) {
-            const currentVersionMatch = trimmedLine.match(/[\d.]+/);
+            const lineParts = trimmedLine.split(':');
+            const currentVersionMatch = lineParts[1].trim().match(/[\d.]+/);
             if (currentVersionMatch) {
                 const currentVersion = currentVersionMatch[0];
                 return line.replace(currentVersion, newVersion);

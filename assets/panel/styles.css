@@ -1,5 +1,5 @@
 body {
-    font-size: 18px;
+    font-size: FONT_SIZEpx;
 }
 
 a {
@@ -33,7 +33,7 @@ a {
     color: white;
     cursor: pointer;
     font-weight: bold;
-    font-size: 16px;
+    font-size: FONT_SIZEpx;
     padding: 0;
 }
 
@@ -62,7 +62,6 @@ a {
     border-radius: 4px;
     color: var(--vscode-settings-textInputForeground);
     cursor: pointer;
-    font-size: inherit;
     align-items: center;
 }
 
@@ -92,7 +91,7 @@ a {
 }
 
 .results-column h2 {
-    font-size: 18px;
+    font-size: FONT_SIZEpx;
     margin-bottom: 8px;
 }
 

@@ -31,11 +31,21 @@ export function registerCommands(context: vscode.ExtensionContext) {
         const packageDataList = await Promise.all(dependencies.map(async (dependency) => {
           const currentVersion = pubspec.dependencies[dependency].toString().replace(/[\^~]/, '').toString();
           const packageData = await fetchPackageData(dependency);
+          const dependencyName = `<a href="https://pub.dev/packages/${dependency}" target="_blank">${dependency}</a>`;
+          const removeButton = `<button class="remove-button" onclick="handleRemoveClick('${dependency}')">X</button>`;
+          if (packageData.latestVersion === '') {
+            return {
+              dependencyName,
+              currentVersion,
+              latestVersion: '-',
+              publishedDate: '-',
+              updateButton: '-',
+              removeButton,
+            };
+          }
           const publishedDate = packageData.publishedDate;
           const canBeUpdated = semver.gt(packageData.latestVersion, currentVersion);
-          const dependencyName = `<a href="https://pub.dev/packages/${dependency}" target="_blank">${dependency}</a>`;
           const latestVersion = `<a href="https://pub.dev/packages/${dependency}/changelog" target="_blank">${packageData.latestVersion}</a>`;
-          const removeButton = `<button class="remove-button" onclick="handleRemoveClick('${dependency}')">X</button>`;
           const updateButton = canBeUpdated
             ? `<a><img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/upgrade.svg')))}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${dependency}', '${packageData.latestVersion}')"></a>`
             : `<img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/check.svg')))}" alt="latest version" class="icon">`;
@@ -48,7 +58,9 @@ export function registerCommands(context: vscode.ExtensionContext) {
             removeButton,
           };
         }));
-        const cssContent = fs.readFileSync(path.join(context.extensionPath, 'assets/panel', 'styles.css'), 'utf-8');
+        const fontSize = vscode.workspace.getConfiguration().get('editor.fontSize') || 18;
+        let cssContent = fs.readFileSync(path.join(context.extensionPath, 'assets/panel', 'styles.css'), 'utf-8');
+        cssContent = cssContent.replace('FONT_SIZE', fontSize.toString());
         const jsContent = fs.readFileSync(path.join(context.extensionPath, 'assets/panel', 'scripts.js'), 'utf-8');
         const actionsHTML = `<div class="refresh-container">
             <h2>${getTheProjectName()?.toUpperCase()}</h2>
