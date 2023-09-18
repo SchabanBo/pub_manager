@@ -52,7 +52,43 @@ export function runAnalyzer(basePath: string): AnalyzerResult {
                 }
             }
         }
+        /// find all classes in the file
+        const classRegex = /class\s+(\w+)\s*(?:extends\s+(\w+))?\s*(?:implements\s+(\w+(?:,\s*\w+)*))?\s*{/g;
+        let match;
+        while ((match = classRegex.exec(content)) !== null) {
+            const className = match[1];
+            const classPath = `${file.path}:${match.index}`;
+            const extendsClass = match[2] || null;
+            const implementsClasses = match[3] || null;
+            const usesClasses: ProjectUsedClass[] = [];
+
+            // Find all used classes in the class
+            const classText = content.substring(match.index, match.index + match[0].length);
+            const usedClassRegex = /new\s+(\w+)\s*\(/g;
+            let usedClassMatch;
+            while ((usedClassMatch = usedClassRegex.exec(classText)) !== null) {
+                const usedClassName = usedClassMatch[1];
+                const usedClassPath = `${file.path}:${match.index + usedClassMatch.index}`;
+                const usedClassLines = usedClassMatch[0].split('\n').length;
+
+                usesClasses.push({
+                    name: usedClassName,
+                    path: usedClassPath,
+                    lines: usedClassLines
+                });
+            }
+
+            file.classes.push({
+                name: className,
+                path: classPath,
+                extends: extendsClass,
+                implements: implementsClasses,
+                usesClasses: usesClasses
+            });
+        }
     }
+
+    console.log(JSON.stringify(files));
 
     const unusedFiles = new Set<string>();
     const unusedPackages = new Set<string>();
@@ -139,15 +175,30 @@ class ProjectFile {
     path: string;
     usesFiles: string[];
     usesPackages: string[];
+    classes: ProjectClass[];
 
     constructor(file: string) {
         this.name = path.basename(file);
         this.path = file;
         this.usesFiles = [];
         this.usesPackages = [];
+        this.classes = [];
     }
 }
 
+interface ProjectClass {
+    name: string;
+    path: string;
+    extends: String | null;
+    implements: String | null;
+    usesClasses: ProjectUsedClass[];
+}
+
+interface ProjectUsedClass {
+    name: string;
+    path: string;
+    lines: number;
+}
 
 interface AnalyzerResult {
     unusedFiles: Set<string>;
