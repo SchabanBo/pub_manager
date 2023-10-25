@@ -37,6 +37,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
             return {
               dependencyName,
               currentVersion,
+              subtitle: '',
               latestVersion: '-',
               publishedDate: '-',
               updateButton: '-',
@@ -49,16 +50,19 @@ export function registerCommands(context: vscode.ExtensionContext) {
           const updateButton = canBeUpdated
             ? `<a><img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/upgrade.svg')))}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${dependency}', '${packageData.latestVersion}')"></a>`
             : `<img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/check.svg')))}" alt="latest version" class="icon">`;
+          const subtitle = 'Platforms: ' + packageData.supposedPlatforms.join('-') + (packageData.dart3Compatible ? ' | Dart3' : '');
           return {
             dependencyName,
             currentVersion,
+            subtitle,
             latestVersion,
             publishedDate,
             updateButton,
             removeButton,
           };
         }));
-        const fontSize = vscode.workspace.getConfiguration().get('editor.fontSize') || 18;
+        const fontSize = vscode.workspace.getConfiguration().get<number>('editor.fontSize') || 18;
+        const smallFontSize = fontSize - 4;
         let cssContent = fs.readFileSync(path.join(context.extensionPath, 'assets/panel', 'styles.css'), 'utf-8');
         cssContent = cssContent.replace('FONT_SIZE', fontSize.toString());
         const jsContent = fs.readFileSync(path.join(context.extensionPath, 'assets/panel', 'scripts.js'), 'utf-8');
@@ -77,17 +81,19 @@ export function registerCommands(context: vscode.ExtensionContext) {
             <th>Package</th>
             <th>Version</th>
             <th>Latest Version</th>
-            <th>Published Date</th>
             <th></th>
           </tr>
           ${packageDataList
             .map(
               (packageData) => `<tr>
               <td>${packageData.updateButton}</td>
-              <td>${packageData.dependencyName}</td>
+              <td>${packageData.dependencyName}
+                <p style="font-size:${smallFontSize}px;margin:4px">${packageData.subtitle}</p>
+              </td>
               <td>${packageData.currentVersion}</td>
-              <td>${packageData.latestVersion}</td>
-              <td>${packageData.publishedDate}</td>
+              <td>${packageData.latestVersion}
+                <span style="font-size:${fontSize - 4}px"> ${packageData.publishedDate}</span>
+              </td>
               <td>${packageData.removeButton}</td>
               </tr>`
             )
