@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
 import { getPubspecContent, getTheProjectName, walkDirectory } from '../utils';
+import * as vscode from 'vscode';
 
 const PROJECT_NAME = getTheProjectName();
 
@@ -57,30 +58,37 @@ export function runAnalyzer(basePath: string): AnalyzerResult {
         let match;
         while ((match = classRegex.exec(content)) !== null) {
             const className = match[1];
-            const classPath = `${file.path}:${match.index}`;
             const extendsClass = match[2] || null;
             const implementsClasses = match[3] || null;
             const usesClasses: ProjectUsedClass[] = [];
 
             // Find all used classes in the class
             const classText = content.substring(match.index, match.index + match[0].length);
-            const usedClassRegex = /new\s+(\w+)\s*\(/g;
+            const usedClassRegex = /(\s|\<)(?<=\b|\.)(([A-Z-.]\w*)+)/g;
             let usedClassMatch;
             while ((usedClassMatch = usedClassRegex.exec(classText)) !== null) {
-                const usedClassName = usedClassMatch[1];
-                const usedClassPath = `${file.path}:${match.index + usedClassMatch.index}`;
-                const usedClassLines = usedClassMatch[0].split('\n').length;
+                let usedClassName = usedClassMatch[0];
 
+                /// if the class has factory constructor, remove the factory keyword
+                if (usedClassName.includes('.')) usedClassName = usedClassName.split('.')[0];
+
+                if (usesClasses.find((usedClass) => usedClass.name === usedClassName)) continue;
+
+                /// find the lines number of the used class
+                const usedClassLines = content.split('\n').map((line, index) => {
+                    if (line.includes(usedClassName)) return index + 1;
+                    return -1;
+                }
+                ).filter((line) => line !== -1);
                 usesClasses.push({
                     name: usedClassName,
-                    path: usedClassPath,
                     lines: usedClassLines
                 });
             }
 
             file.classes.push({
                 name: className,
-                path: classPath,
+                path: file.path,
                 extends: extendsClass,
                 implements: implementsClasses,
                 usesClasses: usesClasses
@@ -89,6 +97,7 @@ export function runAnalyzer(basePath: string): AnalyzerResult {
     }
 
     console.log(JSON.stringify(files));
+    vscode.env.clipboard.writeText(JSON.stringify(files));
 
     const unusedFiles = new Set<string>();
     const unusedPackages = new Set<string>();
@@ -196,8 +205,7 @@ interface ProjectClass {
 
 interface ProjectUsedClass {
     name: string;
-    path: string;
-    lines: number;
+    lines: number[];
 }
 
 interface AnalyzerResult {
