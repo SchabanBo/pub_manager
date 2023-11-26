@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.3.0]
+
+### Added
+- #5 Display supported platforms
+- #6 adds support for multi project in a workspaces.
+
 ## [0.2.0]
 
 ### Added
