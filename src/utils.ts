@@ -51,6 +51,22 @@ export function getPubspecContent() {
         vscode.window.showErrorMessage('Please open a pubspec.yaml file in a workspace before performing the update.');
         return;
     }
+
+    /// If the user has a pubspec.yaml file open, use that
+    const activeFilePath = vscode.window.activeTextEditor?.document.uri.fsPath;
+    if (activeFilePath) {
+        const fileName = path.basename(activeFilePath);
+        if (fileName === 'pubspec.yaml') {
+            try {
+                const fileContent = fs.readFileSync(activeFilePath, 'utf8');
+                return fileContent;
+            } catch (error) {
+                console.error(`Error updating package: ${error}`);
+            }
+        }
+    }
+
+    /// Otherwise, use the first pubspec.yaml file found in the workspace
     const pubspecPath = vscode.Uri.joinPath(workspaceFolder.uri, 'pubspec.yaml');
     try {
         const fileContent = fs.readFileSync(pubspecPath.fsPath, 'utf8');
