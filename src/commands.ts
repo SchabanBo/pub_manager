@@ -75,7 +75,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
           <hr/>
           `;
 
-        const tableHtml = `<table class="package-table">
+        const tableHtml = `<table class="package-table sortable">
           <tr>
             <th></th>
             <th>Package</th>
@@ -117,6 +117,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
           ${tableHtml}
           ${analyzerHtml}
           <script>${jsContent}</script>
+          <script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
         `;
         return;
       }
