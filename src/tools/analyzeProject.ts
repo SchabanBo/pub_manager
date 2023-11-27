@@ -6,11 +6,7 @@ import { getPubspecContent, getTheProjectName, walkDirectory } from '../utils';
 const PROJECT_NAME = getTheProjectName();
 
 export function runAnalyzer(basePath: string): AnalyzerResult {
-    const files = walkDirectory(basePath);
-    const usedFiles = new Set<string>();
-    const unusedFiles = new Set<string>();
-    const usedPackages = new Set<string>();
-    const unusedPackages = new Set<string>();
+    const files = walkDirectory(basePath).map((file) => new ProjectFile(file));
     let filesCount = 0;
     let totalLinesCount = 0;
 
@@ -19,19 +15,20 @@ export function runAnalyzer(basePath: string): AnalyzerResult {
     /// 1- the file is imported from the lib directory directly
     /// 2- the file is imported as relative path
     /// 3- the file is imported as package
-    function fixImportPath(currentPath: string, importLine: string): string | undefined {
-        const importPath = importLine.split('\'')[1];
+    function fixImportPath(file: ProjectFile, importLine: string): string | undefined {
+        const currentPath = path.dirname(file.path);
+        let importPath = importLine.split('\'')[1];
         if (importPath.startsWith('package:' + PROJECT_NAME)) {
-            return importPath.replace('package:' + PROJECT_NAME, '');
+            importPath = importPath.replace('package:' + PROJECT_NAME, '');
         }
 
         if (importPath.startsWith('package:')) {
             const packageName = importPath.split('/')[0];
-            usedPackages.add(packageName.replace('package:', ''));
+            file.usesPackages.push(packageName.replace('package:', ''));
             return undefined;
         }
 
-        const possiblePaths = [path.resolve(currentPath, importPath), path.resolve(basePath, importPath)];
+        const possiblePaths = [path.join(currentPath, importPath), path.join(basePath, importPath)];
         for (const possiblePath of possiblePaths) {
             if (fs.existsSync(possiblePath)) {
                 return possiblePath;
@@ -42,41 +39,43 @@ export function runAnalyzer(basePath: string): AnalyzerResult {
     }
 
     for (const file of files) {
-        if (!file.endsWith('.dart')) continue;
+        if (!file.name.endsWith('.dart')) continue;
         filesCount++;
-        const content = fs.readFileSync(file, 'utf8');
+        const content = fs.readFileSync(file.path, 'utf8');
         const lines = content.split('\n');
         totalLinesCount += lines.length;
         for (const line of lines) {
             if (line.startsWith('import') || line.startsWith('part')) {
-                const importedFilePath = fixImportPath(path.dirname(file), line);
+                const importedFilePath = fixImportPath(file, line);
                 if (importedFilePath) {
-                    usedFiles.add(importedFilePath);
+                    file.usesFiles.push(importedFilePath);
                 }
             }
         }
     }
 
+    const unusedFiles = new Set<string>();
+    const unusedPackages = new Set<string>();
     const filesToIgnore = [
         'main.dart', 'firebase_options.dart'
     ];
 
+    const usedFiles = files.flatMap((file) => file.usesFiles);
     for (const file of files) {
-        if (!usedFiles.has(file) && !filesToIgnore.includes(path.basename(file))) {
-            unusedFiles.add(file);
+        if (filesToIgnore.includes(file.name)) continue;
+        if (!usedFiles.includes(file.path)) {
+            unusedFiles.add(file.path);
         }
     }
 
-    console.debug('Used packages:', usedPackages);
-    console.debug('Unused files:', unusedFiles);
-
     /// filter packages that are not used
+    const usedPackages = files.flatMap((file) => file.usesPackages);
     let pubspecContent = getPubspecContent();
     if (pubspecContent !== undefined) {
         const pubspec = yaml.parse(pubspecContent);
         const dependencies = Object.keys(pubspec.dependencies);
         for (const dependency of dependencies) {
-            if (!usedPackages.has(dependency)) {
+            if (!usedPackages.includes(dependency)) {
                 unusedPackages.add(dependency);
             }
         }
@@ -135,7 +134,22 @@ export function formatAnalyzerResults(result: AnalyzerResult): string {
 }
 
 
-export interface AnalyzerResult {
+class ProjectFile {
+    name: string;
+    path: string;
+    usesFiles: string[];
+    usesPackages: string[];
+
+    constructor(file: string) {
+        this.name = path.basename(file);
+        this.path = file;
+        this.usesFiles = [];
+        this.usesPackages = [];
+    }
+}
+
+
+interface AnalyzerResult {
     unusedFiles: Set<string>;
     unusedPackages: Set<string>;
     filesCount: number;

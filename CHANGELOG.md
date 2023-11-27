@@ -1,6 +1,27 @@
 # Change Log
 
-## [Unreleased]
+## [0.3.1]
+
+### Added
+- #7 add sortable columns. [@aditgpt]
+
+## [0.3.0]
+
+### Added
+- #5 Display supported platforms
+- #6 adds support for multi project in a workspaces.
+
+## [0.2.0]
+
+### Added
+- #3 use font size from settings.
+
+### Changed
+
+### Fixed
+- #2 fix the issue when package name contains number.
+
+## [0.1.0]
 
 ### Added
 - display project name in the toolbar.

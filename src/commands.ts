@@ -31,24 +31,40 @@ export function registerCommands(context: vscode.ExtensionContext) {
         const packageDataList = await Promise.all(dependencies.map(async (dependency) => {
           const currentVersion = pubspec.dependencies[dependency].toString().replace(/[\^~]/, '').toString();
           const packageData = await fetchPackageData(dependency);
+          const dependencyName = `<a href="https://pub.dev/packages/${dependency}" target="_blank">${dependency}</a>`;
+          const removeButton = `<button class="remove-button" onclick="handleRemoveClick('${dependency}')">X</button>`;
+          if (packageData.latestVersion === '') {
+            return {
+              dependencyName,
+              currentVersion,
+              subtitle: '',
+              latestVersion: '-',
+              publishedDate: '-',
+              updateButton: '-',
+              removeButton,
+            };
+          }
           const publishedDate = packageData.publishedDate;
           const canBeUpdated = semver.gt(packageData.latestVersion, currentVersion);
-          const dependencyName = `<a href="https://pub.dev/packages/${dependency}" target="_blank">${dependency}</a>`;
           const latestVersion = `<a href="https://pub.dev/packages/${dependency}/changelog" target="_blank">${packageData.latestVersion}</a>`;
-          const removeButton = `<button class="remove-button" onclick="handleRemoveClick('${dependency}')">X</button>`;
           const updateButton = canBeUpdated
             ? `<a><img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/upgrade.svg')))}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${dependency}', '${packageData.latestVersion}')"></a>`
             : `<img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/check.svg')))}" alt="latest version" class="icon">`;
+          const subtitle = 'Platforms: ' + packageData.supposedPlatforms.join('-') + (packageData.dart3Compatible ? ' | Dart3' : '');
           return {
             dependencyName,
             currentVersion,
+            subtitle,
             latestVersion,
             publishedDate,
             updateButton,
             removeButton,
           };
         }));
-        const cssContent = fs.readFileSync(path.join(context.extensionPath, 'assets/panel', 'styles.css'), 'utf-8');
+        const fontSize = vscode.workspace.getConfiguration().get<number>('editor.fontSize') || 18;
+        const smallFontSize = fontSize - 4;
+        let cssContent = fs.readFileSync(path.join(context.extensionPath, 'assets/panel', 'styles.css'), 'utf-8');
+        cssContent = cssContent.replace('FONT_SIZE', fontSize.toString());
         const jsContent = fs.readFileSync(path.join(context.extensionPath, 'assets/panel', 'scripts.js'), 'utf-8');
         const actionsHTML = `<div class="refresh-container">
             <h2>${getTheProjectName()?.toUpperCase()}</h2>
@@ -65,17 +81,19 @@ export function registerCommands(context: vscode.ExtensionContext) {
             <th>Package</th>
             <th>Version</th>
             <th>Latest Version</th>
-            <th>Published Date</th>
             <th></th>
           </tr>
           ${packageDataList
             .map(
               (packageData) => `<tr>
               <td>${packageData.updateButton}</td>
-              <td>${packageData.dependencyName}</td>
+              <td>${packageData.dependencyName}
+                <p style="font-size:${smallFontSize}px;margin:4px">${packageData.subtitle}</p>
+              </td>
               <td>${packageData.currentVersion}</td>
-              <td>${packageData.latestVersion}</td>
-              <td>${packageData.publishedDate}</td>
+              <td>${packageData.latestVersion}
+                <span style="font-size:${fontSize - 4}px"> ${packageData.publishedDate}</span>
+              </td>
               <td>${packageData.removeButton}</td>
               </tr>`
             )
