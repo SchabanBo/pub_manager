@@ -50,7 +50,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
           const updateButton = canBeUpdated
             ? `<a><img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/upgrade.svg')))}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${dependency}', '${packageData.latestVersion}')"><p hidden>1</p></a>`
             : `<img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/check.svg')))}" alt="latest version" class="icon"><p hidden>0</p></img>`;
-          const subtitle = 'Platforms: ' + packageData.supposedPlatforms.join('-') + (packageData.dart3Compatible ? ' | Dart3' : '');
+          const subtitle = '<b>Platforms:</b> ' + packageData.supposedPlatforms.join('-') + (packageData.dart3Compatible ? ' | Support Dart3' : '');
           return {
             dependencyName,
             currentVersion,
@@ -84,20 +84,20 @@ export function registerCommands(context: vscode.ExtensionContext) {
             <th></th>
           </tr>
           ${packageDataList
-            .map(
-              (packageData) => `<tr>
+            .map((packageData, index) => `
+            <tr id="row-${index}" onclick="toggleExpandableRow(${index})">
               <td>${packageData.updateButton}</td>
-              <td>${packageData.dependencyName}
-                <p style="font-size:${smallFontSize}px;margin:4px">${packageData.subtitle}</p>
-              </td>
+              <td>${packageData.dependencyName}</td>
               <td>${packageData.currentVersion}</td>
               <td>${packageData.latestVersion}
                 <span style="font-size:${fontSize - 4}px"> ${packageData.publishedDate}</span>
               </td>
               <td>${packageData.removeButton}</td>
-              </tr>`
-            )
-            .join('')}
+            </tr>
+            <tr id="expandable-row-${index}" class="expandable-row" style="display: none;">
+              <td colspan="5">${packageData.subtitle}</td>
+            </tr>
+          `).join('')}
         </table>`;
 
         const analyzerHtml = `<div class="analytics-container">

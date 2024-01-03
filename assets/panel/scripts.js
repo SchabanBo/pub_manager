@@ -48,3 +48,17 @@ window.addEventListener('message', (event) => {
         unusedFilesList.style.display = 'block';
     }
 });
+
+function toggleExpandableRow(index) {
+    const row = document.getElementById('row-' + index);
+    const expandableRow = document.getElementById('expandable-row-' + index);
+    if (expandableRow.style.display === 'none') {
+        row.style.boxShadow = 'inset 0 0 0 1000px rgb(75 75 75/ 20%)';
+        row.style.borderBottom = 'none';
+        expandableRow.style.display = '';
+    } else {
+        row.style.removeProperty('box-shadow');
+        row.style.removeProperty('border-bottom');
+        expandableRow.style.display = 'none';
+    }
+}

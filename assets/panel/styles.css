@@ -17,14 +17,21 @@ a {
     width: 100%;
 }
 
-.package-table th,
-.package-table td {
+.package-table tr {
     padding: 8px;
     border-bottom: 1px solid var(--vscode-settings-textInputForeground);
 }
 
+.package-table tr td {
+    padding: 8px;
+}
+
 .package-table th {
     text-align: left;
+}
+
+.expandable-row {
+    box-shadow: inset 0 0 0 1000px rgb(75 75 75 / 30%);
 }
 
 .remove-button {
@@ -49,11 +56,9 @@ a {
     align-items: flex-end;
 }
 
-
 .spacer {
     flex-grow: 1;
 }
-
 
 .toolbar-button {
     background: none;
