@@ -48,8 +48,8 @@ export function registerCommands(context: vscode.ExtensionContext) {
           const canBeUpdated = semver.gt(packageData.latestVersion, currentVersion);
           const latestVersion = `<a href="https://pub.dev/packages/${dependency}/changelog" target="_blank">${packageData.latestVersion}</a>`;
           const updateButton = canBeUpdated
-            ? `<a><img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/upgrade.svg')))}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${dependency}', '${packageData.latestVersion}')"></a>`
-            : `<img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/check.svg')))}" alt="latest version" class="icon">`;
+            ? `<a><img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/upgrade.svg')))}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${dependency}', '${packageData.latestVersion}')"><p hidden>1</p></a>`
+            : `<img src="${panel.webview.asWebviewUri(vscode.Uri.file(context.asAbsolutePath('/assets/icons/check.svg')))}" alt="latest version" class="icon"><p hidden>0</p></img>`;
           const subtitle = 'Platforms: ' + packageData.supposedPlatforms.join('-') + (packageData.dart3Compatible ? ' | Dart3' : '');
           return {
             dependencyName,
