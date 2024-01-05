@@ -4,9 +4,7 @@ import * as yaml from 'yaml';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
-import { fetchPackageData } from './packageData';
-import { getPubspecContent, handleUpdateClick, getTheProjectName, handleRemoveClick } from './utils';
-import { formatAnalyzerResults, runAnalyzer } from './tools/analyzeProject';
+import { Container } from './helpers/container';
 
 export function registerCommands(context: vscode.ExtensionContext) {
   async function reloadPanelContent(panel: vscode.WebviewPanel) {
@@ -129,47 +127,13 @@ export function registerCommands(context: vscode.ExtensionContext) {
   let panelCommand = vscode.commands.registerCommand('extension.showPackagesPanel', () => {
     const panel = vscode.window.createWebviewPanel('packageListPanel', 'Pub Manager', vscode.ViewColumn.One);
     panel.iconPath = vscode.Uri.file(context.asAbsolutePath('/assets/icons//list-dark.png'));
-    reloadPanelContent(panel);
+    panel.webview.options = { enableScripts: true };
 
-    panel.webview.options = {
-      enableScripts: true,
-    };
+    const container = new Container();
+    Container.setInstance(container);
 
-    panel.webview.onDidReceiveMessage((message) => {
-      if (message.command === 'updatePackage') {
-        const packageName = message.package;
-        const version = message.version;
-        handleUpdateClick(packageName, version).then(() => {
-          reloadPanelContent(panel);
-        });
-      } else if (message.command === 'addPackage') {
-        vscode.commands.executeCommand('dart.addDependency').then(() => {
-          reloadPanelContent(panel);
-        });
-      } else if (message.command === 'refreshPanel') {
-        reloadPanelContent(panel);
-      } else if (message.command === 'removePackage') {
-        const packageNameToRemove = message.package;
-        handleRemoveClick(packageNameToRemove).then(() => {
-          reloadPanelContent(panel);
-        });
-      } else if (message.command === 'analyzeProject') {
-        vscode.window.withProgress({
-          location: vscode.ProgressLocation.Notification,
-          title: 'Running Project Analyzer',
-        }, async () => {
-          const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-          if (!workspaceFolder) {
-            vscode.window.showErrorMessage('Please open a flutter project in the workspace');
-            return;
-          }
-          const analyzerResult = runAnalyzer(vscode.Uri.joinPath(workspaceFolder.uri, 'lib').fsPath);
-          const formattedResults = formatAnalyzerResults(analyzerResult);
-          panel.webview.postMessage({ command: 'displayResults', results: formattedResults });
-        });
-      }
-    });
-
+    panel.webview.onDidReceiveMessage(Container.getPanelMessagesService().handleMessage);
+    panel.onDidDispose(container.clear);
   });
 
   context.subscriptions.push(panelCommand);

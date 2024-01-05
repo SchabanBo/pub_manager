@@ -9,7 +9,6 @@ export function activate(context: vscode.ExtensionContext) {
 	statusBarBtn.command = 'extension.showPackagesPanel';
 	statusBarBtn.tooltip = 'Show pub manager panel';
 	statusBarBtn.show();
-
 }
 
 export function deactivate() { }
