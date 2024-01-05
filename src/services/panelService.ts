@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { Container } from '../helpers/container';
-import { fetchPackageData } from './apiService';
 import { HtmlService } from './htmlService';
 
 export class PanelService {
@@ -15,7 +14,7 @@ export class PanelService {
     }
 
     public async update(): Promise<void> {
-        this._panel.webview.html = await new HtmlService().getPanelHtml();
+        this._panel.webview.html = await Container.getHtmlService().getPanelHtml();
     }
 
     public getIconPath(iconName: string): vscode.Uri {

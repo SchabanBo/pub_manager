@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
 import { PubspecDependencies } from "./yamlService";
+import { AnalyzerResult } from "./analysisService";
 
 export class HtmlService {
   private _fontSize: number;
@@ -134,6 +135,51 @@ export class HtmlService {
       updateButton,
       removeButton,
     };
+  }
+
+  public formatAnalyzerResults(result: AnalyzerResult): string {
+    let resultsHtml = `<div class="results-columns">`;
+    resultsHtml += `<h4>Files count: ${result.filesCount}</h4>`;
+    resultsHtml += `<h4>Lines count: ${result.totalLinesCount}</h4>`;
+    resultsHtml += `</div>`;
+    resultsHtml += '<div class="results-columns">';
+
+    // Display used packages
+    if (result.unusedPackages.size > 0) {
+      resultsHtml += '<div class="results-column">';
+      resultsHtml += '<h2>Unused Packages:</h2>';
+      resultsHtml += '<ul>';
+      for (const unusedPackage of result.unusedPackages) {
+        resultsHtml += `<li>${unusedPackage}</li>`;
+      }
+      resultsHtml += '</ul>';
+      resultsHtml += '</div>';
+    } else {
+      resultsHtml += '<div class="results-column">';
+      resultsHtml += '<h2>No unused packages found</h2>';
+      resultsHtml += '</div>';
+    }
+
+
+    // Display unused files
+    if (result.unusedFiles.size > 0) {
+      resultsHtml += '<div class="results-column">';
+      resultsHtml += '<h2>Unused Files:</h2>';
+      resultsHtml += '<ul>';
+      for (const unusedFile of result.unusedFiles) {
+        resultsHtml += `<li>${unusedFile}</li>`;
+      }
+      resultsHtml += '</ul>';
+      resultsHtml += '</div>';
+    } else {
+      resultsHtml += '<div class="results-column">';
+      resultsHtml += '<h2>No unused files found</h2>';
+      resultsHtml += '</div>';
+    }
+
+    resultsHtml += '</div>';
+
+    return resultsHtml;
   }
 }
 

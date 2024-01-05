@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { runPubGetCommand } from '../utils';
-import { formatAnalyzerResults, runAnalyzer } from '../tools/analyzeProject';
+import { runPubGetCommand } from '../helpers/utils';
 import { Container } from '../helpers/container';
+import { HtmlService } from './htmlService';
 
 export class PanelMessagesService {
     constructor() {
@@ -59,8 +59,8 @@ export class PanelMessagesService {
                 vscode.window.showErrorMessage('Please open a flutter project in the workspace');
                 return;
             }
-            const analyzerResult = runAnalyzer(vscode.Uri.joinPath(workspaceFolder.uri, 'lib').fsPath);
-            const formattedResults = formatAnalyzerResults(analyzerResult);
+            const analyzerResult = Container.getAnalysisService().runAnalyzer(vscode.Uri.joinPath(workspaceFolder.uri, 'lib').fsPath);
+            const formattedResults = Container.getHtmlService().formatAnalyzerResults(analyzerResult);
             Container.getPanelService().postMessage({ command: 'displayResults', results: formattedResults });
         });
     }

@@ -3,6 +3,8 @@ import { PanelMessagesService } from '../services/panelMessagesService';
 import { YamlService } from '../services/yamlService';
 import { PanelService } from '../services/panelService';
 import { Console } from 'console';
+import { AnalysisService } from '../services/analysisService';
+import { HtmlService } from '../services/htmlService';
 
 
 export class Container {
@@ -14,6 +16,8 @@ export class Container {
         this.set(Container.panelService, new PanelService(panel));
         this.set(Container.panelMessagesService, new PanelMessagesService());
         this.set(Container.yamlService, new YamlService());
+        this.set(Container.htmlService, new HtmlService());
+        this.set(Container.analysisService, new AnalysisService());
     }
 
     public static setInstance(instance: Container): void {
@@ -24,6 +28,16 @@ export class Container {
     private static yamlService = 'yamlService';
     private static panelService = 'panelService';
     private static extensionContext = 'extensionContext';
+    private static analysisService = 'analysisService';
+    private static htmlService = 'htmlService';
+
+    public static getHtmlService(): HtmlService {
+        return Container.instance.get<any>(Container.htmlService);
+    }
+
+    public static getAnalysisService(): AnalysisService {
+        return Container.instance.get<any>(Container.analysisService);
+    }
 
     public static getExtensionContext(): vscode.ExtensionContext {
         return Container.instance.get<vscode.ExtensionContext>(Container.extensionContext);
