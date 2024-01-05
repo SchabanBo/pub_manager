@@ -2,13 +2,19 @@ import * as vscode from 'vscode';
 import { PanelMessagesService } from '../services/panelMessagesService';
 import { YamlService } from '../services/yamlService';
 import { PanelService } from '../services/panelService';
+import { Console } from 'console';
 
 
 export class Container {
     private static instance: Container;
     private _container: { [key: string]: any } = {};
 
-    public constructor() { }
+    public constructor(context: vscode.ExtensionContext, panel: vscode.WebviewPanel) {
+        this.set(Container.extensionContext, context);
+        this.set(Container.panelService, new PanelService(panel));
+        this.set(Container.panelMessagesService, new PanelMessagesService());
+        this.set(Container.yamlService, new YamlService());
+    }
 
     public static setInstance(instance: Container): void {
         Container.instance = instance;
@@ -17,6 +23,11 @@ export class Container {
     private static panelMessagesService = 'panelMessagesService';
     private static yamlService = 'yamlService';
     private static panelService = 'panelService';
+    private static extensionContext = 'extensionContext';
+
+    public static getExtensionContext(): vscode.ExtensionContext {
+        return Container.instance.get<vscode.ExtensionContext>(Container.extensionContext);
+    }
 
     public static getPanelService(): PanelService {
         return Container.instance.get<PanelService>(Container.panelService);
@@ -31,6 +42,7 @@ export class Container {
     }
 
     public clear(): void {
+        console.log('clearing pub manager container');
         Container.instance._container = {};
     }
 

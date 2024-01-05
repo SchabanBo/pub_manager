@@ -1,14 +1,19 @@
 import path = require('path');
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as yaml from 'yaml';
+import * as semver from 'semver';
 
 export class YamlService {
     private _yamlPath: String | undefined;
     constructor() {
+        if (this.initialize()) {
+            console.log('pubspec.yaml file found ' + this._yamlPath);
+        }
     }
 
     /// Initialize the yamlService
-    initialize(): boolean {
+    private initialize(): boolean {
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
         if (!workspaceFolder) {
             vscode.window.showErrorMessage('Please open a pubspec.yaml file in a workspace before performing the update.');
@@ -20,30 +25,19 @@ export class YamlService {
         if (activeFilePath) {
             const fileName = path.basename(activeFilePath);
             if (fileName === 'pubspec.yaml') {
-                try {
-                    const fileContent = fs.readFileSync(activeFilePath, 'utf8');
-                    this._yamlPath = activeFilePath;
-                    return true;
-                } catch (error) {
-                    console.error(`Error updating package: ${error}`);
-                }
+                this._yamlPath = activeFilePath;
+                return true;
             }
         }
 
         /// Otherwise, use the first pubspec.yaml file found in the workspace
         const pubspecPath = vscode.Uri.joinPath(workspaceFolder.uri, 'pubspec.yaml');
-        try {
-            const fileContent = fs.readFileSync(pubspecPath.fsPath, 'utf8');
-            this._yamlPath = pubspecPath.fsPath;
-            return true;
-        } catch (error) {
-            console.error(`Error updating package: ${error}`);
-        }
-        return false;
+        this._yamlPath = pubspecPath.fsPath;
+        return true;
     }
 
     /// Get the name of the project from the pubspec.yaml file
-    getTheProjectName() {
+    public getTheProjectName() {
         const lines = this.readLines();
         for (const line of lines) {
             if (line.includes('name')) {
@@ -53,21 +47,45 @@ export class YamlService {
         return undefined;
     }
 
+    /// read the pubspec.yaml file content
+    private readString(): string {
+        if (this._yamlPath === undefined) return '';
+        return fs.readFileSync(this._yamlPath.toString(), 'utf8');
+    }
+
     /// Read the lines of the pubspec.yaml file
-    readLines(): string[] {
+    private readLines(): string[] {
         if (this._yamlPath === undefined) return [];
         const fileContent = fs.readFileSync(this._yamlPath.toString(), 'utf8');
         return fileContent.split('\n');
     }
 
     /// Write the lines of the pubspec.yaml file
-    writeLines(lines: string[]): void {
+    private writeLines(lines: string[]): void {
         if (this._yamlPath === undefined) return;
         fs.writeFileSync(this._yamlPath.toString(), lines.join('\n'), 'utf8');
     }
 
+    /// Get the dependencies from the pubspec.yaml file
+    public getPubspecDependencies(): PubspecDependencies[] {
+        const pubspecContent = this.readString();
+        const pubspec = yaml.parse(pubspecContent);
+        return Object.keys(pubspec.dependencies)
+            .map((dependency) => {
+                const name = pubspec.dependencies[dependency];
+                if (typeof name !== 'string') return null;
+                const currentVersion = pubspec.dependencies[dependency].toString().replace(/[\^~]/, '').toString();
+                if (semver.valid(currentVersion) === null) return null;
+                return {
+                    dependencyName: dependency,
+                    currentVersion,
+                };
+            })
+            .filter((dependency) => dependency !== null) as PubspecDependencies[];
+    }
+
     /// remove a dependency from the pubspec.yaml file
-    removeDependency(packageName: string): void {
+    public removeDependency(packageName: string): void {
         const lines = this.readLines();
         const updatedLines = lines.filter((line) => {
             const trimmedLine = line.trim();
@@ -77,7 +95,7 @@ export class YamlService {
     }
 
     /// modify a dependency to the pubspec.yaml file
-    modifyPubspecContent(packageName: string, newVersion: string): void {
+    public modifyPubspecContent(packageName: string, newVersion: string): void {
         const lines = this.readLines();
         const updatedLines = lines.map((line) => {
             const trimmedLine = line.trim();
@@ -94,4 +112,9 @@ export class YamlService {
         this.writeLines(updatedLines);
     }
 
+}
+
+export interface PubspecDependencies {
+    dependencyName: string;
+    currentVersion: string;
 }

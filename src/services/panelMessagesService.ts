@@ -25,11 +25,11 @@ export class PanelMessagesService {
         }
     }
 
-    async handleUpdateClick(packageName: string, newVersion: string) {
+    private async handleUpdateClick(packageName: string, newVersion: string) {
         console.log('Update clicked for package:', packageName);
         try {
             Container.getYamlService().modifyPubspecContent(packageName, newVersion);
-            await runPubGetCommand();
+            runPubGetCommand();
             Container.getPanelService().update();
             vscode.window.showInformationMessage(`Updated package: ${packageName} to version ${newVersion}`);
         } catch (error) {
@@ -37,11 +37,11 @@ export class PanelMessagesService {
         }
     }
 
-    async handleRemoveClick(packageName: string) {
+    private async handleRemoveClick(packageName: string) {
         console.log('Remove clicked for package:', packageName);
         try {
             Container.getYamlService().removeDependency(packageName);
-            await runPubGetCommand();
+            runPubGetCommand();
             Container.getPanelService().update();
             vscode.window.showInformationMessage(`Removed package: ${packageName}`);
         } catch (error) {
@@ -49,7 +49,7 @@ export class PanelMessagesService {
         }
     }
 
-    runAnalyzer(): void {
+    private runAnalyzer(): void {
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'Running Project Analyzer',
