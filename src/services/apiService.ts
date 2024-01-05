@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 export interface PackageData {
     latestVersion: string;
@@ -35,28 +35,3 @@ export async function fetchPackageData(packageName: string): Promise<PackageData
     }
 }
 
-export function modifyPubspecContent(pubspecContent: string, packageName: string, newVersion: string): string {
-    const lines = pubspecContent.split('\n');
-    const updatedLines = lines.map((line) => {
-        const trimmedLine = line.trim();
-        if (trimmedLine.startsWith(packageName + ':')) {
-            const lineParts = trimmedLine.split(':');
-            const currentVersionMatch = lineParts[1].trim().match(/[\d.]+/);
-            if (currentVersionMatch) {
-                const currentVersion = currentVersionMatch[0];
-                return line.replace(currentVersion, newVersion);
-            }
-        }
-        return line;
-    });
-    return updatedLines.join('\n');
-}
-
-export function removeDependency(pubspecContent: string, packageName: string): string {
-    const lines = pubspecContent.split('\n');
-    const updatedLines = lines.filter((line) => {
-        const trimmedLine = line.trim();
-        return !trimmedLine.startsWith(packageName + ':');
-    });
-    return updatedLines.join('\n');
-}
