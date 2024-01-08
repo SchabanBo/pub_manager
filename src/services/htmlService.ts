@@ -77,19 +77,24 @@ export class HtmlService {
 
   private async getRow(dependency: PubspecDependencies, index: number): Promise<string> {
     try {
-      const packageData = await this.getRowData(dependency, index);
+      const data = await this.getRowData(dependency, index);
       return `
         <tr id="row-${index}" onclick="toggleExpandableRow(${index})">
-          <td>${packageData.updateButton}</td>
-          <td>${packageData.dependencyName}</td>
-          <td>${packageData.currentVersion}</td>
-          <td>${packageData.latestVersion}
-            <span style="font-size:${this._fontSize - 4}px"> ${packageData.publishedDate}</span>
+          <td>${data.updateButton}</td>
+          <td>${data.dependencyName}</td>
+          <td>${data.currentVersion}</td>
+          <td>${data.latestVersion}
+            <span style="font-size:${this._fontSize - 4}px"> ${data.publishedDate}</span>
           </td>
-          <td>${packageData.removeButton}</td>
+          <td>${data.removeButton}</td>
         </tr>
         <tr id="expandable-row-${index}" class="expandable-row" style="display: none;">
-          <td colspan="5">${packageData.subtitle}</td>
+          <td colspan="5">
+            <p>${data.description}</p>
+            <div>
+             ${data.infos.join('</br>')}
+            </div>
+          </td>
         </tr>`;
     } catch (error) {
       console.error(error);
@@ -106,34 +111,41 @@ export class HtmlService {
     const currentVersion = dependency.currentVersion;
     const name = dependency.dependencyName;
     const packageData = await fetchPackageData(name);
+    const description = packageData.description;
     const dependencyName = `<a href="https://pub.dev/packages/${name}" target="_blank">${name}</a>`;
     const removeButton = `<button class="remove-button" onclick="handleRemoveClick('${name}')">X</button>`;
+    const publishedDate = packageData.publishedDate;
+    const platformsTags = '<b>Platforms:</b> ' + packageData.platformTags.join(' | ');
+    const isTags = '<b>Supports:</b> ' + packageData.isTags.join(' | ');
+    const licenses = '<b>Licenses:</b> ' + packageData.licenses.join(' | ');
+    const gitHistoryInfo = await Container.getYamlService().getGitHistory(dependency.lineNumber);
+    const gitHistory = gitHistoryInfo ? `<b>Git History:</b> ${gitHistoryInfo}` : '';
+    const infos = [platformsTags, isTags, licenses, gitHistory];
     if (packageData.latestVersion === '') {
       return {
         dependencyName,
         currentVersion,
-        subtitle: '',
         latestVersion: '-',
-        publishedDate: '-',
+        publishedDate,
         updateButton: '-',
-        removeButton,
+        removeButton, description,
+        infos,
       };
     }
-    const publishedDate = packageData.publishedDate;
     const canBeUpdated = semver.gt(packageData.latestVersion, currentVersion);
     const latestVersion = `<a href="https://pub.dev/packages/${name}/changelog" target="_blank">${packageData.latestVersion}</a>`;
     const updateButton = canBeUpdated
       ? `<a><img src="${this.getIconPath('upgrade.svg')}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${name}', '${packageData.latestVersion}')"><p hidden>1</p></a>`
       : `<img src="${this.getIconPath('check.svg')}" alt="latest version" class="icon"><p hidden>0</p></img>`;
-    const subtitle = '<b>Platforms:</b> ' + packageData.supposedPlatforms.join('-') + (packageData.dart3Compatible ? ' | Support Dart3' : '');
     return {
       dependencyName,
       currentVersion,
-      subtitle,
       latestVersion,
       publishedDate,
       updateButton,
       removeButton,
+      description,
+      infos,
     };
   }
 
@@ -186,9 +198,10 @@ export class HtmlService {
 interface RowData {
   dependencyName: string;
   currentVersion: string;
-  subtitle: string;
   latestVersion: string;
   publishedDate: string;
   updateButton: string;
   removeButton: string;
+  description: string;
+  infos: string[]
 }

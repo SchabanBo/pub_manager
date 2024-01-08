@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import * as semver from 'semver';
+import { runCommand } from '../helpers/utils';
 
 export class YamlService {
     private _yamlPath: String | undefined;
@@ -68,20 +69,36 @@ export class YamlService {
 
     /// Get the dependencies from the pubspec.yaml file
     public getPubspecDependencies(): PubspecDependencies[] {
-        const pubspecContent = this.readString();
-        const pubspec = yaml.parse(pubspecContent);
+        const lines = this.readLines();
+        const pubspec = yaml.parse(lines.join('\n'));
         return Object.keys(pubspec.dependencies)
             .map((dependency) => {
                 const name = pubspec.dependencies[dependency];
                 if (typeof name !== 'string') return null;
                 const currentVersion = pubspec.dependencies[dependency].toString().replace(/[\^~]/, '').toString();
                 if (semver.valid(currentVersion) === null) return null;
+                const line = lines.find((line) => line.includes(dependency) && line.includes(currentVersion));
                 return {
                     dependencyName: dependency,
                     currentVersion,
+                    lineNumber: lines.indexOf(line!),
                 };
             })
             .filter((dependency) => dependency !== null) as PubspecDependencies[];
+    }
+
+    async getGitHistory(lineNumber: number): Promise<string> {
+        try {
+            const cwd = this._yamlPath?.toString().replace('pubspec.yaml', '');
+            let result = await runCommand(`git blame -L ${lineNumber},${lineNumber} pubspec.yaml`, { cwd });
+            const matches = result.match(/(\w+) \(([^)]+)\)/);
+            if (!matches) return '';
+            return `${matches[2]} (${matches[1]})`;
+        } catch (error) {
+            console.error(`Error fetching git history for ${path}:`, error);
+            return '';
+        }
+
     }
 
     /// remove a dependency from the pubspec.yaml file
@@ -117,4 +134,5 @@ export class YamlService {
 export interface PubspecDependencies {
     dependencyName: string;
     currentVersion: string;
+    lineNumber: number;
 }

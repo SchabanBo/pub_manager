@@ -14,12 +14,15 @@ export async function runPubGetCommand(): Promise<void> {
     }
 }
 
+
 export function runCommand(command: string, options: childProcess.ExecOptions): Promise<string> {
     return new Promise((resolve, reject) => {
         childProcess.exec(command, options, (error, stdout, stderr) => {
             if (error) {
+                console.error(error);
                 reject(error);
             } else if (stderr) {
+                console.error(stderr);
                 reject(new Error(stderr));
             } else {
                 resolve(stdout.trim());
