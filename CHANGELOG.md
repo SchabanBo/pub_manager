@@ -2,7 +2,7 @@
 
 ## dev
 
-- Sort table by the packages that have an update available
+- Adds #12 #10 #9
 
 ## [0.3.1]
 

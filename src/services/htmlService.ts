@@ -9,6 +9,7 @@ import { AnalyzerResult } from "./analysisService";
 
 export class HtmlService {
   private _fontSize: number;
+  private licenses: { [name: string]: string[]; } = {};
 
   constructor() {
     this._fontSize = vscode.workspace.getConfiguration().get<number>('editor.fontSize') || 18;;
@@ -37,6 +38,13 @@ export class HtmlService {
   }
 
   private getAnalyzer(): string {
+    let licenses = `<div class="licenses-container">`;
+    licenses += `<h2>Licenses summery</h2><hr/>`;
+    for (const name in this.licenses) {
+      licenses += `<h4>${name.toUpperCase()}:</h4> ${this.licenses[name].join(' | ')}`;
+    }
+    licenses += `</div>`;
+    this.licenses = {};
     return `
       <div class="analytics-container">
           <h2>Static analyzer</h2>
@@ -47,7 +55,8 @@ export class HtmlService {
       <div id="resultsContainer" class="results-container">
           <p id="loadingMessage" class="hidden">Running analyzer...</p>
           <ul id="unusedFilesList" class="hidden"></ul>
-      </div>`;
+      </div>
+      ${licenses}`;
   }
 
   private getCssContent(): string {
@@ -121,6 +130,7 @@ export class HtmlService {
     const gitHistoryInfo = await Container.getYamlService().getGitHistory(dependency.lineNumber);
     const gitHistory = gitHistoryInfo ? `<b>Git History:</b> ${gitHistoryInfo}` : '';
     const infos = [platformsTags, isTags, licenses, gitHistory];
+    this._addPackageToLicenses(name, packageData.licenses[0]);
     if (packageData.latestVersion === '') {
       return {
         dependencyName,
@@ -147,6 +157,16 @@ export class HtmlService {
       description,
       infos,
     };
+  }
+
+  private _addPackageToLicenses(name: string, license: string | undefined): void {
+    license = license || 'Unknown';
+    if (this.licenses[license]) {
+      this.licenses[license].push(name);
+    } else {
+      this.licenses[license] = [name];
+    }
+
   }
 
   public formatAnalyzerResults(result: AnalyzerResult): string {
