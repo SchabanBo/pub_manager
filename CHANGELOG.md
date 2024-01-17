@@ -2,7 +2,11 @@
 
 ## dev
 
-- Adds #12 #10 #9
+- Show the License summery of the project.
+- Sort table by the packages, that have an update available
+- Show git history for the package (who and when updated the package)
+- Show dev dependencies in the table
+- Add the number of the packages need to be updated.
 
 ## [0.3.1]
 
