@@ -70,17 +70,18 @@ export class HtmlService {
 
   private async getTable(): Promise<String> {
     const dependencies = Container.getYamlService().getPubspecDependencies();
-    const packageDataList = await Promise.all(dependencies.map(this.getRow.bind(this)));
+    const packages = await Promise.all(dependencies.map(this.getRow.bind(this)));
+    const needUpdate = packages.filter((d) => d.includes('upgrade.svg')).length;
     return `
       <table class="package-table sortable">
         <tr>
-          <th></th>
+          <th>${needUpdate}/${packages.length}</th>
           <th>Package</th>
           <th>Version</th>
           <th>Latest Version</th>
           <th></th>
         </tr>
-        ${packageDataList.join('')}
+        ${packages.join('')}
       </table>`;
   }
 
@@ -121,7 +122,8 @@ export class HtmlService {
     const name = dependency.dependencyName;
     const packageData = await fetchPackageData(name);
     const description = packageData.description;
-    const dependencyName = `<a href="https://pub.dev/packages/${name}" target="_blank">${name}</a>`;
+    const devTag = dependency.isDevDependency ? `<span class="dev-tag">dev</span>` : '';
+    const dependencyName = `<a href="https://pub.dev/packages/${name}" target="_blank">${name}</a> ${devTag}`;
     const removeButton = `<button class="remove-button" onclick="handleRemoveClick('${name}')">X</button>`;
     const publishedDate = packageData.publishedDate;
     const platformsTags = '<b>Platforms:</b> ' + packageData.platformTags.join(' | ');

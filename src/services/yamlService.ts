@@ -48,12 +48,6 @@ export class YamlService {
         return undefined;
     }
 
-    /// read the pubspec.yaml file content
-    private readString(): string {
-        if (this._yamlPath === undefined) return '';
-        return fs.readFileSync(this._yamlPath.toString(), 'utf8');
-    }
-
     /// Read the lines of the pubspec.yaml file
     private readLines(): string[] {
         if (this._yamlPath === undefined) return [];
@@ -71,23 +65,29 @@ export class YamlService {
     public getPubspecDependencies(): PubspecDependencies[] {
         const lines = this.readLines();
         const pubspec = yaml.parse(lines.join('\n'));
-        return Object.keys(pubspec.dependencies)
-            .map((dependency) => {
-                const name = pubspec.dependencies[dependency];
-                if (typeof name !== 'string') return null;
-                const currentVersion = pubspec.dependencies[dependency].toString().replace(/[\^~]/, '').toString();
-                if (semver.valid(currentVersion) === null) return null;
-                const line = lines.find((line) => line.includes(dependency) && line.includes(currentVersion));
-                return {
-                    dependencyName: dependency,
-                    currentVersion,
-                    lineNumber: lines.indexOf(line!),
-                };
-            })
-            .filter((dependency) => dependency !== null) as PubspecDependencies[];
+        function parse(dependency: string, version: string, isDevDependency: boolean): PubspecDependencies | null {
+            if (typeof version !== 'string') return null;
+
+            const currentVersion = version.replace(/[\^~]/, '');
+            if (semver.valid(currentVersion) === null) return null;
+
+            const line = lines.find((line) => line.includes(dependency) && line.includes(currentVersion));
+            if (!line) return null;
+            return {
+                dependencyName: dependency,
+                currentVersion,
+                lineNumber: lines.indexOf(line),
+                isDevDependency: isDevDependency,
+            };
+        }
+        const dependencies = Object.keys(pubspec.dependencies).map((d) => parse(d, pubspec.dependencies[d], false));
+        const devDependencies = Object.keys(pubspec.dev_dependencies).map((d) => parse(d, pubspec.dev_dependencies[d], true));
+
+        return [...dependencies, ...devDependencies].filter(Boolean) as PubspecDependencies[];
     }
 
-    async getGitHistory(lineNumber: number): Promise<string> {
+
+    public async getGitHistory(lineNumber: number): Promise<string> {
         try {
             const cwd = this._yamlPath?.toString().replace('pubspec.yaml', '');
             let result = await runCommand(`git blame -L ${lineNumber},${lineNumber} pubspec.yaml`, { cwd });
@@ -135,4 +135,5 @@ export interface PubspecDependencies {
     dependencyName: string;
     currentVersion: string;
     lineNumber: number;
+    isDevDependency: boolean;
 }
