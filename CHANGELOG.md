@@ -1,5 +1,15 @@
 # Change Log
 
+## [0.4.0]
+
+### Added
+
+- Show a summery for the Licenses of the packages that are used in the project.
+- the ability to sort the table by the packages, that have an update available
+- Show the git history for the packages (who and when added/updated the package)
+- Show the dev dependencies in the table
+- Add the number of the packages need to be updated and the total number of the packages.
+
 ## [0.3.1]
 
 ### Added

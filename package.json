@@ -6,7 +6,7 @@
     "name": "Schaban Bochi"
   },
   "publisher": "qlevar",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/SchabanBo/pub_manager"
@@ -36,8 +36,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.showPackagesPanel",
-        "title": "Pub Manager: Show Package List",
+        "command": "extension.showPubManagerPanel",
+        "title": "Pub Manager: Show Panel",
         "icon": {
           "light": "assets/icons/list-light.png",
           "dark": "assets/icons/list-dark.png"
