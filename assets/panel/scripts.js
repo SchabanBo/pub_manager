@@ -3,6 +3,8 @@
 /// Update the package
 /// </summary>
 const vscode = acquireVsCodeApi();
+
+
 function handleUpdateClick(package, version) {
     vscode.postMessage({ command: 'updatePackage', package, version });
 }
@@ -27,13 +29,14 @@ refreshButton.addEventListener('click', () => {
     vscode.postMessage({ command: 'refreshPanel' });
 });
 
-
+const packagesLoadingMessage = document.getElementById('packagesLoadingMessage');
+const packagesTable = document.getElementById('packagesTable');
 const analyzeButton = document.getElementById('analyzeButton');
-const loadingMessage = document.getElementById('loadingMessage');
+const analyzerLoadingMessage = document.getElementById("analyzerLoadingMessage");
 const unusedFilesList = document.getElementById('unusedFilesList');
 
 analyzeButton.addEventListener('click', () => {
-    loadingMessage.style.display = 'block';
+    analyzerLoadingMessage.style.display = "block";
     unusedFilesList.innerHTML = '';
 
     vscode.postMessage({ command: 'analyzeProject' });
@@ -42,10 +45,15 @@ analyzeButton.addEventListener('click', () => {
 // Handle messages from the extension
 window.addEventListener('message', (event) => {
     const message = event.data;
-    if (message.command === 'displayResults') {
-        loadingMessage.style.display = 'none';
+    if (message.command === 'displayAnalyzerResults') {
+        analyzerLoadingMessage.style.display = "none";
         unusedFilesList.innerHTML = message.results;
         unusedFilesList.style.display = 'block';
+    }
+    if (message.command === "displayPackagesResults") {
+        packagesLoadingMessage.style.display = "none";
+        packagesTable.innerHTML = message.results;
+        packagesTable.classList.remove('hidden');
     }
 });
 

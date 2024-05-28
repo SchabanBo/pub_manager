@@ -61,7 +61,10 @@ export class PanelMessagesService {
             }
             const analyzerResult = Container.getAnalysisService().runAnalyzer(vscode.Uri.joinPath(workspaceFolder.uri, 'lib').fsPath);
             const formattedResults = Container.getHtmlService().formatAnalyzerResults(analyzerResult);
-            Container.getPanelService().postMessage({ command: 'displayResults', results: formattedResults });
+            Container.getPanelService().postMessage({
+              command: "displayAnalyzerResults",
+              results: formattedResults,
+            });
         });
     }
 }

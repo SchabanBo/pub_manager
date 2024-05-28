@@ -40,7 +40,7 @@ export class AnalysisService {
         }
 
         for (const file of files) {
-            if (!file.name.endsWith('.dart')) continue;
+            if (!file.name.endsWith('.dart')) {continue;}
             filesCount++;
             const content = fs.readFileSync(file.path, 'utf8');
             const lines = content.split('\n');
@@ -63,7 +63,7 @@ export class AnalysisService {
 
         const usedFiles = files.flatMap((file) => file.usesFiles);
         for (const file of files) {
-            if (filesToIgnore.includes(file.name)) continue;
+            if (filesToIgnore.includes(file.name)) {continue;}
             if (!usedFiles.includes(file.path)) {
                 unusedFiles.add(file.path);
             }

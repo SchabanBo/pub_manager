@@ -1,18 +1,19 @@
 import { Container } from "../helpers/container";
 import { fetchPackageData } from "./apiService";
-import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as semver from 'semver';
+import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
+import * as semver from "semver";
 import { PubspecDependencies } from "./yamlService";
 import { AnalyzerResult } from "./analysisService";
 
 export class HtmlService {
   private _fontSize: number;
-  private licenses: { [name: string]: string[]; } = {};
+  private licenses: { [name: string]: string[] } = {};
 
   constructor() {
-    this._fontSize = vscode.workspace.getConfiguration().get<number>('editor.fontSize') || 18;;
+    this._fontSize =
+      vscode.workspace.getConfiguration().get<number>("editor.fontSize") || 18;
   }
 
   public async getPanelHtml(): Promise<string> {
@@ -27,7 +28,9 @@ export class HtmlService {
   }
 
   private getHeader(): string {
-    const projectName = Container.getYamlService().getTheProjectName()?.toUpperCase();
+    const projectName = Container.getYamlService()
+      .getTheProjectName()
+      ?.toUpperCase();
     return `
       <div class="refresh-container">
         <h2>${projectName}</h2>
@@ -41,7 +44,9 @@ export class HtmlService {
     let licenses = `<div class="licenses-container">`;
     licenses += `<h2>Licenses summery</h2><hr/>`;
     for (const name in this.licenses) {
-      licenses += `<h4>${name.toUpperCase()}:</h4> ${this.licenses[name].join(' | ')}`;
+      licenses += `<h4>${name.toUpperCase()}:</h4> ${this.licenses[name].join(
+        " | "
+      )}`;
     }
     licenses += `</div>`;
     this.licenses = {};
@@ -53,26 +58,50 @@ export class HtmlService {
       </div>
       <hr/>
       <div id="resultsContainer" class="results-container">
-          <p id="loadingMessage" class="hidden">Running analyzer...</p>
+          <p id="analyzerLoadingMessage" class="hidden">Running analyzer...</p>
           <ul id="unusedFilesList" class="hidden"></ul>
       </div>
       ${licenses}`;
   }
 
   private getCssContent(): string {
-    let cssContent = fs.readFileSync(path.join(Container.getExtensionContext().extensionPath, 'assets/panel', 'styles.css'), 'utf-8');
-    return cssContent.replace('FONT_SIZE', this._fontSize.toString());
+    let cssContent = fs.readFileSync(
+      path.join(
+        Container.getExtensionContext().extensionPath,
+        "assets/panel",
+        "styles.css"
+      ),
+      "utf-8"
+    );
+    return cssContent.replace("FONT_SIZE", this._fontSize.toString());
   }
 
   private getJsContent(): string {
-    return fs.readFileSync(path.join(Container.getExtensionContext().extensionPath, 'assets/panel', 'scripts.js'), 'utf-8');
+    return fs.readFileSync(
+      path.join(
+        Container.getExtensionContext().extensionPath,
+        "assets/panel",
+        "scripts.js"
+      ),
+      "utf-8"
+    );
   }
 
   private async getTable(): Promise<String> {
-    const dependencies = Container.getYamlService().getPubspecDependencies();
-    const packages = await Promise.all(dependencies.map(this.getRow.bind(this)));
-    const needUpdate = packages.filter((d) => d.includes('upgrade.svg')).length;
+    this.prepareTable();
     return `
+        <p id="packagesLoadingMessage">Analyzing packages...</p>
+        <div id="packagesTable" class="hidden"></div>
+      `;
+  }
+
+  private async prepareTable(): Promise<void> {
+    const dependencies = Container.getYamlService().getPubspecDependencies();
+    const packages = await Promise.all(
+      dependencies.map(this.getRow.bind(this))
+    );
+    const needUpdate = packages.filter((d) => d.includes("upgrade.svg")).length;
+    const table = `
       <table class="package-table sortable">
         <tr>
           <th>${needUpdate}/${packages.length}</th>
@@ -83,9 +112,16 @@ export class HtmlService {
         </tr>
         ${packages.join('')}
       </table>`;
+    Container.getPanelService().postMessage({
+      command: "displayPackagesResults",
+      results: table,
+    });
   }
 
-  private async getRow(dependency: PubspecDependencies, index: number): Promise<string> {
+  private async getRow(
+    dependency: PubspecDependencies,
+    index: number
+  ): Promise<string> {
     try {
       const data = await this.getRowData(dependency, index);
       return `
@@ -94,7 +130,9 @@ export class HtmlService {
           <td>${data.dependencyName}</td>
           <td>${data.currentVersion}</td>
           <td>${data.latestVersion}
-            <span style="font-size:${this._fontSize - 4}px"> ${data.publishedDate}</span>
+            <span style="font-size:${this._fontSize - 4}px"> ${
+        data.publishedDate
+      }</span>
           </td>
           <td>${data.removeButton}</td>
         </tr>
@@ -102,7 +140,7 @@ export class HtmlService {
           <td colspan="5">
             <p>${data.description}</p>
             <div>
-             ${data.infos.join('</br>')}
+             ${data.infos.join("</br>")}
             </div>
           </td>
         </tr>`;
@@ -110,45 +148,61 @@ export class HtmlService {
       console.error(error);
       return ``;
     }
-
   }
 
   private getIconPath(iconName: string): vscode.Uri {
     return Container.getPanelService().getIconPath(iconName);
   }
 
-  private async getRowData(dependency: PubspecDependencies, index: number): Promise<RowData> {
+  private async getRowData(
+    dependency: PubspecDependencies,
+    index: number
+  ): Promise<RowData> {
     const currentVersion = dependency.currentVersion;
     const name = dependency.dependencyName;
     const packageData = await fetchPackageData(name);
     const description = packageData.description;
-    const devTag = dependency.isDevDependency ? `<span class="dev-tag">dev</span>` : '';
+    const devTag = dependency.isDevDependency
+      ? `<span class="dev-tag">dev</span>`
+      : "";
     const dependencyName = `<a href="https://pub.dev/packages/${name}" target="_blank">${name}</a> ${devTag}`;
     const removeButton = `<button class="remove-button" onclick="handleRemoveClick('${name}')">X</button>`;
     const publishedDate = packageData.publishedDate;
-    const platformsTags = '<b>Platforms:</b> ' + packageData.platformTags.join(' | ');
-    const isTags = '<b>Supports:</b> ' + packageData.isTags.join(' | ');
-    const licenses = '<b>Licenses:</b> ' + packageData.licenses.join(' | ');
-    const gitHistoryInfo = await Container.getYamlService().getGitHistory(dependency.lineNumber);
-    const gitHistory = gitHistoryInfo ? `<b>Git History:</b> ${gitHistoryInfo}` : '';
+    const platformsTags =
+      "<b>Platforms:</b> " + packageData.platformTags.join(" | ");
+    const isTags = "<b>Supports:</b> " + packageData.isTags.join(" | ");
+    const licenses = "<b>Licenses:</b> " + packageData.licenses.join(" | ");
+    const gitHistoryInfo = await Container.getYamlService().getGitHistory(
+      dependency.lineNumber
+    );
+    const gitHistory = gitHistoryInfo
+      ? `<b>Git History:</b> ${gitHistoryInfo}`
+      : "";
     const infos = [platformsTags, isTags, licenses, gitHistory];
     this._addPackageToLicenses(name, packageData.licenses[0]);
-    if (packageData.latestVersion === '') {
+    if (packageData.latestVersion === "") {
       return {
         dependencyName,
         currentVersion,
-        latestVersion: '-',
+        latestVersion: "-",
         publishedDate,
-        updateButton: '-',
-        removeButton, description,
+        updateButton: "-",
+        removeButton,
+        description,
         infos,
       };
     }
     const canBeUpdated = semver.gt(packageData.latestVersion, currentVersion);
     const latestVersion = `<a href="https://pub.dev/packages/${name}/changelog" target="_blank">${packageData.latestVersion}</a>`;
     const updateButton = canBeUpdated
-      ? `<a><img src="${this.getIconPath('upgrade.svg')}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${name}', '${packageData.latestVersion}')"><p hidden>1</p></a>`
-      : `<img src="${this.getIconPath('check.svg')}" alt="latest version" class="icon"><p hidden>0</p></img>`;
+      ? `<a><img src="${this.getIconPath(
+          "upgrade.svg"
+        )}" alt="Upgrade" class="icon" onclick="handleUpdateClick('${name}', '${
+          packageData.latestVersion
+        }')"><p hidden>1</p></a>`
+      : `<img src="${this.getIconPath(
+          "check.svg"
+        )}" alt="latest version" class="icon"><p hidden>0</p></img>`;
     return {
       dependencyName,
       currentVersion,
@@ -161,14 +215,16 @@ export class HtmlService {
     };
   }
 
-  private _addPackageToLicenses(name: string, license: string | undefined): void {
-    license = license || 'Unknown';
+  private _addPackageToLicenses(
+    name: string,
+    license: string | undefined
+  ): void {
+    license = license || "Unknown";
     if (this.licenses[license]) {
       this.licenses[license].push(name);
     } else {
       this.licenses[license] = [name];
     }
-
   }
 
   public formatAnalyzerResults(result: AnalyzerResult): string {
@@ -181,37 +237,36 @@ export class HtmlService {
     // Display used packages
     if (result.unusedPackages.size > 0) {
       resultsHtml += '<div class="results-column">';
-      resultsHtml += '<h2>Unused Packages:</h2>';
-      resultsHtml += '<ul>';
+      resultsHtml += "<h2>Unused Packages:</h2>";
+      resultsHtml += "<ul>";
       for (const unusedPackage of result.unusedPackages) {
         resultsHtml += `<li>${unusedPackage}</li>`;
       }
-      resultsHtml += '</ul>';
-      resultsHtml += '</div>';
+      resultsHtml += "</ul>";
+      resultsHtml += "</div>";
     } else {
       resultsHtml += '<div class="results-column">';
-      resultsHtml += '<h2>No unused packages found</h2>';
-      resultsHtml += '</div>';
+      resultsHtml += "<h2>No unused packages found</h2>";
+      resultsHtml += "</div>";
     }
-
 
     // Display unused files
     if (result.unusedFiles.size > 0) {
       resultsHtml += '<div class="results-column">';
-      resultsHtml += '<h2>Unused Files:</h2>';
-      resultsHtml += '<ul>';
+      resultsHtml += "<h2>Unused Files:</h2>";
+      resultsHtml += "<ul>";
       for (const unusedFile of result.unusedFiles) {
         resultsHtml += `<li>${unusedFile}</li>`;
       }
-      resultsHtml += '</ul>';
-      resultsHtml += '</div>';
+      resultsHtml += "</ul>";
+      resultsHtml += "</div>";
     } else {
       resultsHtml += '<div class="results-column">';
-      resultsHtml += '<h2>No unused files found</h2>';
-      resultsHtml += '</div>';
+      resultsHtml += "<h2>No unused files found</h2>";
+      resultsHtml += "</div>";
     }
 
-    resultsHtml += '</div>';
+    resultsHtml += "</div>";
 
     return resultsHtml;
   }
@@ -225,5 +280,5 @@ interface RowData {
   updateButton: string;
   removeButton: string;
   description: string;
-  infos: string[]
+  infos: string[];
 }

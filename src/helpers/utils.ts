@@ -32,5 +32,5 @@ export function runCommand(command: string, options: childProcess.ExecOptions): 
 }
 
 export function walkDirectory(dir: string): string[] {
-    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((file) => file.isDirectory() ? walkDirectory(path.join(dir, file.name)) : path.join(dir, file.name))
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((file) => file.isDirectory() ? walkDirectory(path.join(dir, file.name)) : path.join(dir, file.name));
 }
