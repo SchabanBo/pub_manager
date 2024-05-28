@@ -73,8 +73,8 @@ export class AnalysisService {
         const usedPackages = files.flatMap((file) => file.usesPackages);
         const dependencies = Container.getYamlService().getPubspecDependencies();
         for (const dependency of dependencies) {
-            if (!usedPackages.includes(dependency.dependencyName)) {
-                unusedPackages.add(dependency.dependencyName);
+            if (!usedPackages.includes(dependency.name)) {
+                unusedPackages.add(dependency.name);
             }
         }
 

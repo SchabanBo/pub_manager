@@ -70,6 +70,10 @@ a {
     align-items: center;
 }
 
+.dev-tag{    
+    text-decoration: underline;
+}
+
 .analytics-container {
     margin-bottom: 12px;
     padding-top: 8px;

@@ -3,6 +3,28 @@
 /// Update the package
 /// </summary>
 const vscode = acquireVsCodeApi();
+const packagesLoadingMessage = document.getElementById("packagesLoadingMessage");
+const packagesTable = document.getElementById("packagesTable");
+const analyzerLoadingMessage = document.getElementById("analyzerLoadingMessage");
+const unusedFilesList = document.getElementById("unusedFilesList");
+const liceenseContainer = document.getElementById("licensesContainer");
+
+// Handle messages from the extension
+window.addEventListener('message', (event) => {
+    const message = event.data;
+    if (message.command === 'displayAnalyzerResults') {
+        analyzerLoadingMessage.style.display = "none";
+        unusedFilesList.innerHTML = message.results;
+        unusedFilesList.style.display = 'block';
+    }
+    if (message.command === "displayPackagesResults") {
+        packagesLoadingMessage.style.display = "none";
+        packagesTable.innerHTML = message.results.table;
+        liceenseContainer.innerHTML = message.results.licenses;
+        packagesTable.classList.remove('hidden');
+        sorttable.makeSortable(packagesTable);
+    }
+});
 
 
 function handleUpdateClick(package, version) {
@@ -21,41 +43,22 @@ function handleRemoveClick(packageName) {
     vscode.postMessage(message);
 }
 
+function handleUpdateAllClick() {
+    vscode.postMessage({ command: 'updateAllPackages' });
+}
+
 /// <summary>
 /// Reloads the panel content
 /// </summary>
-const refreshButton = document.getElementById('refreshButton');
-refreshButton.addEventListener('click', () => {
+function handleRefreshClick() {
     vscode.postMessage({ command: 'refreshPanel' });
-});
+}
 
-const packagesLoadingMessage = document.getElementById('packagesLoadingMessage');
-const packagesTable = document.getElementById('packagesTable');
-const analyzeButton = document.getElementById('analyzeButton');
-const analyzerLoadingMessage = document.getElementById("analyzerLoadingMessage");
-const unusedFilesList = document.getElementById('unusedFilesList');
-
-analyzeButton.addEventListener('click', () => {
+function handleAnalyzeClick() {
     analyzerLoadingMessage.style.display = "block";
-    unusedFilesList.innerHTML = '';
-
-    vscode.postMessage({ command: 'analyzeProject' });
-});
-
-// Handle messages from the extension
-window.addEventListener('message', (event) => {
-    const message = event.data;
-    if (message.command === 'displayAnalyzerResults') {
-        analyzerLoadingMessage.style.display = "none";
-        unusedFilesList.innerHTML = message.results;
-        unusedFilesList.style.display = 'block';
-    }
-    if (message.command === "displayPackagesResults") {
-        packagesLoadingMessage.style.display = "none";
-        packagesTable.innerHTML = message.results;
-        packagesTable.classList.remove('hidden');
-    }
-});
+    unusedFilesList.innerHTML = "";
+    vscode.postMessage({ command: "analyzeProject" });
+}
 
 function toggleExpandableRow(index) {
     const row = document.getElementById('row-' + index);

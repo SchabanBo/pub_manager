@@ -2,12 +2,13 @@ import * as vscode from 'vscode';
 import { PanelMessagesService } from '../services/panelMessagesService';
 import { YamlService } from '../services/yamlService';
 import { PanelService } from '../services/panelService';
-import { Console } from 'console';
+import { Package } from '../models';
 import { AnalysisService } from '../services/analysisService';
 import { HtmlService } from '../services/htmlService';
 
 
 export class Container {
+    public static packages : Package[] = [] ;
     private static instance: Container;
     private _container: { [key: string]: any } = {};
 
@@ -58,6 +59,7 @@ export class Container {
     public clear(): void {
         console.log('clearing pub manager container');
         Container.instance._container = {};
+        Container.packages = [];
     }
 
     private get<T>(key: string): T {

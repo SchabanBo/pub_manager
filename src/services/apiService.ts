@@ -1,14 +1,7 @@
 import axios from "axios";
-import { runCommand } from "../helpers/utils";
+import { PackageData } from "../models";
 
-export interface PackageData {
-    latestVersion: string;
-    publishedDate: string;
-    description: string;
-    platformTags: string[];
-    isTags: string[];
-    licenses: string[];
-}
+
 
 export async function fetchPackageData(packageName: string): Promise<PackageData> {
     try {
