@@ -3,12 +3,13 @@ export interface Package {
   currentVersion: string;
   lineNumber: number;
   isDevDependency: boolean;
-  data: PackageData | undefined;
+  data?: PackageData ;
   gitHistory: string;
 }
 
 export interface PackageData {
   latestVersion: string;
+  resolvable?: string;
   publishedDate: string;
   description: string;
   platformTags: string[];

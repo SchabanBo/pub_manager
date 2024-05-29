@@ -11,6 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
 		panel.webview.onDidReceiveMessage((m) => Container.getPanelMessagesService().handleMessage(m));
 		panel.onDidDispose(container.clear);
 		Container.getPanelService().update();
+		// Update the panel when the active text editor changes
+		vscode.window.onDidChangeActiveTextEditor(() => Container.getPanelService().update());
 	});
 
 	context.subscriptions.push(panelCommand);

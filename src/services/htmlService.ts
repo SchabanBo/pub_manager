@@ -1,11 +1,12 @@
 import { Container } from "../helpers/container";
-import { fetchPackageData } from "./apiService";
+import { fetchOutdatedData, fetchPackageData } from "./apiService";
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import * as semver from "semver";
 import { AnalyzerResult } from "./analysisService";
 import { Package } from "../models";
+import { runCommandInCurrentDire } from "../helpers/utils";
 
 export class HtmlService {
   private _fontSize: number;
@@ -21,6 +22,9 @@ export class HtmlService {
       ${this.getHeader()}
       <hr/>
       ${await this.getTable()}
+      <h2>Flutter</h2>
+      <hr/>
+      <ul id="flutterVersion"></ul>
       ${this.getAnalyzer()}
       <script>${this.getJsContent()}</script>
       <script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>`;
@@ -30,14 +34,30 @@ export class HtmlService {
     const projectName = Container.getYamlService()
       .getTheProjectName()
       ?.toUpperCase();
+    this.getFlutterInfo();
     return `
       <div class="refresh-container">
         <h2>${projectName}</h2>
         <div class="spacer"></div>
         <button id="addPackage" class="toolbar-button" onclick="handleAddPackageClick()">Add package</button>
-        <button id="updateAll" class="toolbar-button" onclick="handleUpdateAllClick()" style="margin-left: 16px;">Update all packages</button>
-        <button id="refreshButton" class="toolbar-button" onclick="handleRefreshClick()" style="margin-left: 16px;">Refresh</button>
+        <button id="updateAll" class="toolbar-button" onclick="handleUpdateAllClick()" style="margin-left: 16px;">Update all</button>
+        <button id="refreshButton" class="toolbar-button" onclick="handleRefreshClick()" style="margin-left: 16px;">Refresh</button>        
       </div>`;
+  }
+
+  private async getFlutterInfo(): Promise<void> {
+    if (!Container.cache.flutterVersion) {
+      const result = await runCommandInCurrentDire("flutter --version");
+      if (result === "") {
+        return;
+      }
+      Container.cache.flutterVersion = result;
+    }
+
+    Container.getPanelService().postMessage({
+      command: "displayFlutterVersion",
+      results: Container.cache.flutterVersion.split("\n"),
+    });
   }
 
   private getAnalyzer(): string {
@@ -91,14 +111,14 @@ export class HtmlService {
     const packages = await Promise.all(
       dependencies.map(this.getRow.bind(this))
     );
-    Container.packages = dependencies;
+    Container.cache.packages = dependencies;
     const needUpdate = packages.filter((d) => d.includes("upgrade.svg")).length;
     const table = `
     <tr>
     <th>${needUpdate}/${packages.length}</th>
     <th>Package</th>
     <th>Current</th>
-    <th>Latest</th>
+    <th>Update to</th>
     <th></th>
         </tr>
         ${packages.join("")}
@@ -120,10 +140,14 @@ export class HtmlService {
       )}`;
     }
     licenses += `</div>`;
+    const ready = Container.cache.ready;
     Container.getPanelService().postMessage({
       command: "displayPackagesResults",
-      results: { table, licenses },
+      results: { table, licenses, ready },
     });
+    if (!ready) {
+      fetchOutdatedData();
+    }
   }
 
   private async getRow(dependency: Package, index: number): Promise<string> {
@@ -136,7 +160,7 @@ export class HtmlService {
         data.dependencyName
       }</td>
           <td>${data.currentVersion}</td>
-          <td>${data.latestVersion}
+          <td>${data.nextVersion}
             <span style="font-size:${this._fontSize - 4}px"> ${
         data.publishedDate
       }</span>
@@ -192,7 +216,7 @@ export class HtmlService {
       return {
         dependencyName,
         currentVersion,
-        latestVersion: "-",
+        nextVersion: "-",
         publishedDate,
         updateButton: "-",
         removeButton,
@@ -200,8 +224,14 @@ export class HtmlService {
         infos,
       };
     }
-    const canBeUpdated = semver.gt(packageData.latestVersion, currentVersion);
-    const latestVersion = `<a href="https://pub.dev/packages/${name}/changelog" target="_blank">${packageData.latestVersion}</a>`;
+    const canBeUpdated = semver.gt(
+      packageData.resolvable ?? packageData.latestVersion,
+      currentVersion
+    );
+    const nextVersionText = packageData.resolvable
+      ? `${packageData.resolvable} (resolvable) - ${packageData.latestVersion} (latest)`
+      : packageData.latestVersion;
+    const nextVersion = `<a href="https://pub.dev/packages/${name}/changelog" target="_blank">${nextVersionText}</a>`;
     const updateButton = canBeUpdated
       ? `<a><img src="${this.getIconPath(
           "upgrade.svg"
@@ -212,7 +242,7 @@ export class HtmlService {
     return {
       dependencyName,
       currentVersion,
-      latestVersion,
+      nextVersion: nextVersion,
       publishedDate,
       updateButton,
       removeButton,
@@ -274,7 +304,7 @@ export class HtmlService {
 interface RowData {
   dependencyName: string;
   currentVersion: string;
-  latestVersion: string;
+  nextVersion: string;
   publishedDate: string;
   updateButton: string;
   removeButton: string;

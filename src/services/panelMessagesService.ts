@@ -12,10 +12,10 @@ export class PanelMessagesService {
       this.handleUpdateClick(packageName);
     } else if (message.command === "addPackage") {
       await vscode.commands.executeCommand("dart.addDependency");
-      Container.packages = [];
+      Container.cache.clear();
       Container.getPanelService().update();
     } else if (message.command === "refreshPanel") {
-      Container.packages = [];
+      Container.cache.clear();
       Container.getPanelService().update();
     } else if (message.command === "updateAllPackages") {
       Container.getYamlService().updateAllPackages();
@@ -30,7 +30,7 @@ export class PanelMessagesService {
   private async handleUpdateClick(packageName: string) {
     console.log("Update clicked for package:", packageName);
     try {
-      const packageData = Container.packages.find(
+      const packageData = Container.cache.packages.find(
         (p) => p.name === packageName
       );
       const newVersion = packageData?.data?.latestVersion!;
@@ -51,7 +51,7 @@ export class PanelMessagesService {
     try {
       Container.getYamlService().removeDependency(packageName);
       runPubGetCommand();
-      Container.packages = Container.packages.filter(
+      Container.cache.packages = Container.cache.packages.filter(
         (p) => p.name !== packageName
       );
       Container.getPanelService().update();
