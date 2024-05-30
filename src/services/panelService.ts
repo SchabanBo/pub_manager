@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { Container } from '../helpers/container';
-import { HtmlService } from './htmlService';
 
 export class PanelService {
     private _panel: vscode.WebviewPanel;
@@ -18,7 +17,7 @@ export class PanelService {
     }
 
     public getIconPath(iconName: string): vscode.Uri {
-        const file = vscode.Uri.file(Container.getExtensionContext().asAbsolutePath(`/assets/icons/${iconName}`))
+        const file = vscode.Uri.file(Container.getExtensionContext().asAbsolutePath(`/assets/icons/${iconName}`));
         return this._panel.webview.asWebviewUri(file);
     }
 
