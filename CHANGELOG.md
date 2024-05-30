@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.5.0]
+
+## Added
+
+- Analyze the resolvable packages in the project .
+- Add update all button to update all the packages in the project.
+- Show the current flutter version.
+
+## Fixed
+
+- Fix the issue when updating a package containing something after the version number (1.0.1+5 or 1.0.0-beta).
+
 ## [0.4.0]
 
 ### Added
