@@ -156,7 +156,7 @@ export class YamlService {
       const trimmedLine = line.trim();
       if (trimmedLine.startsWith(packageName + ":")) {
         const lineParts = trimmedLine.split(":");
-        const currentVersionMatch = lineParts[1].trim().match(/[\d.+]+/);
+        const currentVersionMatch = lineParts[1].trim().match(/[\d.+].*/);
         if (currentVersionMatch) {
           const currentVersion = currentVersionMatch[0];
           return line.replace(currentVersion, newVersion);

@@ -10,6 +10,7 @@ a {
     width: 24px;
     height: 24px;
     cursor: pointer;
+    filter: invert(10%) sepia(12%) saturate(9%) hue-rotate(0deg) brightness(95%) contrast(92%);
 }
 
 .package-table {
@@ -70,7 +71,7 @@ a {
     align-items: center;
 }
 
-.dev-tag{    
+.dev-tag {
     text-decoration: underline;
 }
 
